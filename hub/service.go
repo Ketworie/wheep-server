@@ -54,19 +54,3 @@ func (s *Service) RemoveUsers(id uuid.UUID, users []uuid.UUID) error {
 	}
 	return s.Update(model)
 }
-
-func (s *Service) FindHubs(userId uuid.UUID) ([]View, error) {
-	hubs, err := s.FindByUser(userId)
-	if err != nil {
-		return nil, err
-	}
-	views := make([]View, len(hubs))
-	for i, v := range hubs {
-		views[i] = View{
-			ID:        v.ID,
-			Name:      v.Name,
-			UserCount: len(v.Users),
-		}
-	}
-	return views, nil
-}

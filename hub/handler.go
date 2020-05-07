@@ -31,7 +31,7 @@ func HandleAdd(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func HandleFindByUser(w http.ResponseWriter, r *http.Request) error {
+func HandleFindByUser(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	s := r.FormValue("id")
 	userId, err := uuid.Parse(s)
 	if err != nil {
@@ -42,5 +42,13 @@ func HandleFindByUser(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(w).Encode(hubs)
+	views := make([]View, len(hubs))
+	for i, v := range hubs {
+		views[i] = View{
+			ID:        v.ID,
+			Name:      v.Name,
+			UserCount: len(v.Users),
+		}
+	}
+	return json.NewEncoder(w).Encode(views)
 }
