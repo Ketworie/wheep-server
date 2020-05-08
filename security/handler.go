@@ -3,7 +3,7 @@ package security
 import (
 	"encoding/json"
 	"errors"
-	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"wheep-server/user"
 )
@@ -16,8 +16,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	w.Header().Set("X-Auth-Token", u.String())
+	w.Header().Set("X-Auth-Token", u.Hex())
 	return nil
+}
+
+func HandleCreateIndexes(u user.Model, w http.ResponseWriter, r *http.Request) error {
+	return user.GetService().CreateIndexes()
 }
 
 func HandleMe(u user.Model, w http.ResponseWriter, r *http.Request) error {
@@ -29,7 +33,7 @@ func HandleAuthorize(w http.ResponseWriter, r *http.Request) (user.Model, error)
 	if len(get) == 0 {
 		return user.Model{}, errors.New("unauthorized")
 	}
-	id, err := uuid.Parse(get)
+	id, err := primitive.ObjectIDFromHex(get)
 	if err != nil {
 		return user.Model{}, err
 	}

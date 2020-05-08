@@ -3,8 +3,8 @@ package security
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"sync"
@@ -16,9 +16,9 @@ import (
 const sessionLimit int = 5
 
 type Session struct {
-	ID   uuid.UUID  `bson:"_id"`
-	U    user.Model `bson:"u"`
-	Last time.Time  `bson:"last"`
+	ID   primitive.ObjectID `bson:"_id"`
+	U    user.Model         `bson:"u"`
+	Last time.Time          `bson:"last"`
 }
 
 type Gate struct {
@@ -41,16 +41,16 @@ func GetGate() *Gate {
 	return g
 }
 
-func (g *Gate) Login(login string, password string) (uuid.UUID, error) {
+func (g *Gate) Login(login string, password string) (primitive.ObjectID, error) {
 	u, err := g.us.GetByLogin(login)
 	if err != nil {
-		return uuid.Nil, err
+		return primitive.NilObjectID, err
 	}
 	if u.Password != password {
-		return uuid.Nil, errors.New("password incorrect")
+		return primitive.NilObjectID, errors.New("password incorrect")
 	}
 	session := Session{
-		ID:   uuid.New(),
+		ID:   primitive.NewObjectID(),
 		U:    u,
 		Last: time.Now(),
 	}
@@ -66,13 +66,13 @@ func (g *Gate) checkSessionLimit(login string) {
 	defer cancel()
 	find, _ := g.sc.Find(ctx, bson.M{"u.login": login}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
 	var res []struct {
-		ID uuid.UUID `bson:"_id"`
+		ID primitive.ObjectID `bson:"_id"`
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	find.All(ctx, &res)
 	if len(res) != 0 {
-		ids := make([]uuid.UUID, len(res))
+		ids := make([]primitive.ObjectID, len(res))
 		for i, re := range res {
 			ids[i] = re.ID
 		}
@@ -82,7 +82,7 @@ func (g *Gate) checkSessionLimit(login string) {
 	}
 }
 
-func (g *Gate) Authorize(sid uuid.UUID) (user.Model, error) {
+func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	one := g.sc.FindOne(ctx, bson.M{"_id": sid})

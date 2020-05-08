@@ -19,6 +19,7 @@ func (s *Server) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 	return s.Router.HandleFunc(path, func(writer http.ResponseWriter, request *http.Request) {
 		err := f(writer, request)
 		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
 			jsonErr := json.NewEncoder(writer).Encode(struct {
 				Message string    `json:"message"`
 				Date    time.Time `json:"date"`
@@ -31,7 +32,6 @@ func (s *Server) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 			if jsonErr != nil {
 				log.Println(jsonErr)
 			}
-			writer.WriteHeader(http.StatusBadRequest)
 		}
 	})
 }
@@ -51,8 +51,15 @@ func StartServer() error {
 	server.Use(jsonMW)
 	server.HandleFunc("/login", security.HandleLogin).Methods("POST")
 	server.HandleFunc("/user", user.HandleAdd).Methods("POST")
+	server.HandleFuncAuthorized("/createIndexes", security.HandleCreateIndexes).Methods("GET")
 	server.HandleFuncAuthorized("/user/me", security.HandleMe).Methods("GET")
+	server.HandleFuncAuthorized("/user/me/hubs", hub.HandleFindMyHubs).Methods("GET")
 	server.HandleFuncAuthorized("/hub", hub.HandleAdd).Methods("POST")
+	server.HandleFuncAuthorized("/hub", hub.HandleGet).Methods("GET")
+	server.HandleFuncAuthorized("/hub", hub.HandleDelete).Methods("DELETE")
+	server.HandleFuncAuthorized("/hub/rename", hub.HandleRename).Methods("POST")
+	server.HandleFuncAuthorized("/hub/users/add", hub.HandleAddUsers).Methods("POST")
+	server.HandleFuncAuthorized("/hub/users/remove", hub.HandleRemoveUsers).Methods("POST")
 	return http.ListenAndServe(":8080", server)
 }
 

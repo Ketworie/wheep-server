@@ -1,13 +1,15 @@
 package user
 
-import "github.com/google/uuid"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Model struct {
-	ID       uuid.UUID `bson:"_id",json:"id"`
-	Alias    string    `bson:"alias",json:"alias"`
-	Login    string    `bson:"login",json:"login"`
-	Password string    `bson:"password",json:"password"`
-	Name     string    `bson:"name",json:"name"`
+	ID       primitive.ObjectID `bson:"_id"`
+	Alias    string             `bson:"alias"`
+	Login    string             `bson:"login"`
+	Password string             `bson:"password"`
+	Name     string             `bson:"name"`
 }
 
 type View struct {

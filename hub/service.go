@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"github.com/google/uuid"
 	"sync"
 	"wheep-server/db"
 )
@@ -22,35 +21,4 @@ func initService() {
 func GetService() *Service {
 	once.Do(initService)
 	return s
-}
-
-func (s *Service) Rename(id uuid.UUID, name string) error {
-	model, err := s.Get(id)
-	if err != nil {
-		return err
-	}
-	model.Name = name
-	return s.Update(model)
-}
-
-func (s *Service) AddUsers(id uuid.UUID, users []uuid.UUID) error {
-	model, err := s.Get(id)
-	if err != nil {
-		return err
-	}
-	for _, u := range users {
-		model.Users[u] = true
-	}
-	return s.Update(model)
-}
-
-func (s *Service) RemoveUsers(id uuid.UUID, users []uuid.UUID) error {
-	model, err := s.Get(id)
-	if err != nil {
-		return err
-	}
-	for _, u := range users {
-		delete(model.Users, u)
-	}
-	return s.Update(model)
 }

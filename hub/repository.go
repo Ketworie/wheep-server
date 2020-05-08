@@ -2,8 +2,8 @@ package hub
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"wheep-server/db"
 )
@@ -13,14 +13,14 @@ type Repository struct {
 }
 
 func (r *Repository) Add(hub Model) (Model, error) {
-	hub.ID = uuid.New()
+	hub.ID = primitive.NewObjectID()
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	_, err := r.collection.InsertOne(ctx, hub)
 	return hub, err
 }
 
-func (r *Repository) Get(id uuid.UUID) (Model, error) {
+func (r *Repository) Get(id primitive.ObjectID) (Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	var m Model
@@ -28,24 +28,24 @@ func (r *Repository) Get(id uuid.UUID) (Model, error) {
 	return m, err
 }
 
-func (r *Repository) Delete(id uuid.UUID) error {
+func (r *Repository) Delete(id primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }
 
-func (r *Repository) Update(hub Model) error {
+func (r *Repository) Rename(hub Model) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": hub.ID}, bson.M{"$set": bson.M{"name": hub.Name, "users": hub.Users}})
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": hub.ID}, bson.M{"$set": bson.M{"name": hub.Name}})
 	return err
 }
 
-func (r *Repository) FindByUser(userId uuid.UUID) ([]Model, error) {
+func (r *Repository) FindByUser(userId primitive.ObjectID) ([]Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	find, err := r.collection.Find(ctx, bson.M{"users": bson.M{"$in": userId}})
+	find, err := r.collection.Find(ctx, bson.M{"users": bson.M{"$in": []primitive.ObjectID{userId}}})
 	if err != nil {
 		return nil, err
 	}
@@ -54,4 +54,18 @@ func (r *Repository) FindByUser(userId uuid.UUID) ([]Model, error) {
 	defer cancel()
 	err = find.All(ctx, &hubs)
 	return hubs, err
+}
+
+func (r *Repository) AddUsers(id primitive.ObjectID, users []primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$addToSet": bson.M{"users": bson.M{"$each": users}}})
+	return err
+}
+
+func (r *Repository) RemoveUsers(id primitive.ObjectID, users []primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$pull": bson.M{"users": bson.M{"$in": users}}})
+	return err
 }
