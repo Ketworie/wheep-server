@@ -37,6 +37,14 @@ func (r *Repository) GetByLogin(login string) (Model, error) {
 	return m, err
 }
 
+func (r *Repository) GetByAlias(alias string) (Model, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	var m Model
+	err := r.collection.FindOne(ctx, bson.M{"alias": alias}).Decode(&m)
+	return m, err
+}
+
 func (r *Repository) Delete(id primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
