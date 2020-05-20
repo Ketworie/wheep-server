@@ -5,10 +5,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
-	"wheep-server/user"
 )
 
-func HandleAdd(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleAdd(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var av AddView
 	err := json.NewDecoder(r.Body).Decode(&av)
 	if err != nil {
@@ -16,7 +15,7 @@ func HandleAdd(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	}
 	service := GetService()
 	userMap := make(map[primitive.ObjectID]bool)
-	users := []primitive.ObjectID{u.ID}
+	users := []primitive.ObjectID{uid}
 	for _, v := range av.Users {
 		if _, ok := userMap[v]; !ok {
 			userMap[v] = true
@@ -37,7 +36,7 @@ func HandleAdd(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func HandleGet(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleGet(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	if err != nil {
 		return err
@@ -53,7 +52,7 @@ func HandleGet(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func HandleDelete(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleDelete(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	if err != nil {
 		return err
@@ -61,7 +60,7 @@ func HandleDelete(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	return GetService().Delete(id)
 }
 
-func HandleRename(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleRename(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var v View
 	err := json.NewDecoder(r.Body).Decode(&v)
 	if err != nil {
@@ -83,7 +82,7 @@ func HandleRename(u user.Model, w http.ResponseWriter, r *http.Request) error {
 	return err
 }
 
-func HandleAddUsers(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleAddUsers(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var users []primitive.ObjectID
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
@@ -109,7 +108,7 @@ func HandleAddUsers(u user.Model, w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
-func HandleRemoveUsers(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleRemoveUsers(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var users []primitive.ObjectID
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
@@ -135,7 +134,7 @@ func HandleRemoveUsers(u user.Model, w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
-func HandleFindByUser(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleFindByUser(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	s := r.FormValue("id")
 	userId, err := primitive.ObjectIDFromHex(s)
 	if err != nil {
@@ -153,9 +152,9 @@ func HandleFindByUser(u user.Model, w http.ResponseWriter, r *http.Request) erro
 	return json.NewEncoder(w).Encode(views)
 }
 
-func HandleFindMyHubs(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleFindMyHubs(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	service := GetService()
-	hubs, err := service.FindByUser(u.ID)
+	hubs, err := service.FindByUser(uid)
 	if err != nil {
 		return err
 	}

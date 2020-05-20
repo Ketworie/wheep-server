@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
 	"time"
@@ -38,7 +39,7 @@ func (s *Server) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 	})
 }
 
-func (s *Server) HandleFuncAuthorized(path string, f func(user.Model, http.ResponseWriter, *http.Request) error) *mux.Route {
+func (s *Server) HandleFuncAuthorized(path string, f func(primitive.ObjectID, http.ResponseWriter, *http.Request) error) *mux.Route {
 	return s.HandleFunc(path, func(writer http.ResponseWriter, request *http.Request) error {
 		u, err := security.HandleAuthorize(writer, request)
 		if err != nil {

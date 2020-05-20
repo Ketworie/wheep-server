@@ -1,12 +1,12 @@
 package server
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
-	"wheep-server/user"
 )
 
-func HandleUpload(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleUpload(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		return err

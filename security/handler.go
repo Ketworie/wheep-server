@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"wheep-server/hub"
 	"wheep-server/user"
 )
 
@@ -20,27 +21,31 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func HandleCreateIndexes(u user.Model, w http.ResponseWriter, r *http.Request) error {
+func HandleCreateIndexes(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	return user.GetService().CreateIndexes()
 }
 
-func HandleMe(u user.Model, w http.ResponseWriter, r *http.Request) error {
-	return json.NewEncoder(w).Encode(u.View())
+func HandleMe(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	model, err := hub.GetService().Get(uid)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(model.View())
 }
 
-func HandleAuthorize(w http.ResponseWriter, r *http.Request) (user.Model, error) {
+func HandleAuthorize(w http.ResponseWriter, r *http.Request) (primitive.ObjectID, error) {
 	get := r.Header.Get("X-Auth-Token")
 	if len(get) == 0 {
-		return user.Model{}, errors.New("unauthorized")
+		return primitive.NilObjectID, errors.New("unauthorized")
 	}
 	id, err := primitive.ObjectIDFromHex(get)
 	if err != nil {
-		return user.Model{}, err
+		return primitive.NilObjectID, err
 	}
 	gate := GetGate()
-	u, err := gate.Authorize(id)
+	uid, err := gate.Authorize(id)
 	if err != nil {
-		return user.Model{}, err
+		return primitive.NilObjectID, err
 	}
-	return u, nil
+	return uid, nil
 }

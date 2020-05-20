@@ -95,13 +95,13 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 	return nil
 }
 
-func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
+func (g *Gate) Authorize(sid primitive.ObjectID) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	one := g.sc.FindOne(ctx, bson.M{"_id": sid})
 	var s Session
 	if one.Err() != nil {
-		return user.Model{}, one.Err()
+		return primitive.NilObjectID, one.Err()
 	}
 	err := one.Decode(&s)
 	if err == nil {
@@ -109,12 +109,8 @@ func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
 		defer cancel()
 		_, err := g.sc.UpdateOne(ctx, bson.M{"_id": s.ID}, bson.M{"$set": bson.M{"last": time.Now()}})
 		if err != nil {
-			return user.Model{}, err
+			return primitive.NilObjectID, err
 		}
 	}
-	model, err := user.GetService().Get(s.UserId)
-	if err != nil {
-		return user.Model{}, err
-	}
-	return model, err
+	return s.UserId, err
 }
