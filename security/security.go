@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"sync"
 	"time"
 	"wheep-server/db"
@@ -57,11 +58,16 @@ func (g *Gate) Login(login string, password string) (primitive.ObjectID, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	_, err = g.sc.InsertOne(ctx, session)
-	g.checkSessionLimit(u.ID)
+	go func() {
+		e := g.checkSessionLimit(u.ID)
+		if e != nil {
+			log.Printf("Cannot check session limit. %v", e)
+		}
+	}()
 	return session.ID, err
 }
 
-func (g *Gate) checkSessionLimit(userId primitive.ObjectID) {
+func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	find, _ := g.sc.Find(ctx, bson.M{"userId": userId}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
@@ -70,7 +76,10 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) {
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	find.All(ctx, &res)
+	err := find.All(ctx, &res)
+	if err != nil {
+		return err
+	}
 	if len(res) != 0 {
 		ids := make([]primitive.ObjectID, len(res))
 		for i, re := range res {
@@ -78,8 +87,12 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) {
 		}
 		ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
-		g.sc.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
+		_, err = g.sc.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
@@ -94,7 +107,10 @@ func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
 	if err == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
-		g.sc.UpdateOne(ctx, bson.M{"_id": s.ID}, bson.M{"$set": bson.M{"last": time.Now()}})
+		_, err := g.sc.UpdateOne(ctx, bson.M{"_id": s.ID}, bson.M{"$set": bson.M{"last": time.Now()}})
+		if err != nil {
+			return user.Model{}, err
+		}
 	}
 	model, err := user.GetService().Get(s.UserId)
 	if err != nil {
