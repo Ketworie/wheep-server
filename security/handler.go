@@ -25,7 +25,7 @@ func HandleCreateIndexes(u user.Model, w http.ResponseWriter, r *http.Request) e
 }
 
 func HandleMe(u user.Model, w http.ResponseWriter, r *http.Request) error {
-	return json.NewEncoder(w).Encode(u)
+	return json.NewEncoder(w).Encode(u.View())
 }
 
 func HandleAuthorize(w http.ResponseWriter, r *http.Request) (user.Model, error) {

@@ -16,9 +16,9 @@ import (
 const sessionLimit int = 5
 
 type Session struct {
-	ID   primitive.ObjectID `bson:"_id"`
-	U    user.Model         `bson:"u"`
-	Last time.Time          `bson:"last"`
+	ID     primitive.ObjectID `bson:"_id"`
+	UserId primitive.ObjectID `bson:"userId"`
+	Last   time.Time          `bson:"last"`
 }
 
 type Gate struct {
@@ -50,21 +50,21 @@ func (g *Gate) Login(login string, password string) (primitive.ObjectID, error) 
 		return primitive.NilObjectID, errors.New("password incorrect")
 	}
 	session := Session{
-		ID:   primitive.NewObjectID(),
-		U:    u,
-		Last: time.Now(),
+		ID:     primitive.NewObjectID(),
+		UserId: u.ID,
+		Last:   time.Now(),
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	_, err = g.sc.InsertOne(ctx, session)
-	g.checkSessionLimit(login)
+	g.checkSessionLimit(u.ID)
 	return session.ID, err
 }
 
-func (g *Gate) checkSessionLimit(login string) {
+func (g *Gate) checkSessionLimit(userId primitive.ObjectID) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	find, _ := g.sc.Find(ctx, bson.M{"u.login": login}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
+	find, _ := g.sc.Find(ctx, bson.M{"userId": userId}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
 	var res []struct {
 		ID primitive.ObjectID `bson:"_id"`
 	}
@@ -88,7 +88,7 @@ func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
 	one := g.sc.FindOne(ctx, bson.M{"_id": sid})
 	var s Session
 	if one.Err() != nil {
-		return s.U, one.Err()
+		return user.Model{}, one.Err()
 	}
 	err := one.Decode(&s)
 	if err == nil {
@@ -96,5 +96,9 @@ func (g *Gate) Authorize(sid primitive.ObjectID) (user.Model, error) {
 		defer cancel()
 		g.sc.UpdateOne(ctx, bson.M{"_id": s.ID}, bson.M{"$set": bson.M{"last": time.Now()}})
 	}
-	return s.U, err
+	model, err := user.GetService().Get(s.UserId)
+	if err != nil {
+		return user.Model{}, err
+	}
+	return model, err
 }

@@ -11,6 +11,8 @@ import (
 	"wheep-server/user"
 )
 
+var ResourceRoot = "/resources/"
+
 type Server struct {
 	*mux.Router
 }
@@ -48,18 +50,21 @@ func (s *Server) HandleFuncAuthorized(path string, f func(user.Model, http.Respo
 
 func StartServer() error {
 	server := Server{mux.NewRouter()}
-	server.Use(jsonMW)
-	server.HandleFunc("/login", security.HandleLogin).Methods("POST")
-	server.HandleFunc("/user", user.HandleAdd).Methods("POST")
-	server.HandleFuncAuthorized("/createIndexes", security.HandleCreateIndexes).Methods("GET")
-	server.HandleFuncAuthorized("/user/me", security.HandleMe).Methods("GET")
-	server.HandleFuncAuthorized("/user/me/hubs", hub.HandleFindMyHubs).Methods("GET")
-	server.HandleFuncAuthorized("/hub", hub.HandleAdd).Methods("POST")
-	server.HandleFuncAuthorized("/hub", hub.HandleGet).Methods("GET")
-	server.HandleFuncAuthorized("/hub", hub.HandleDelete).Methods("DELETE")
-	server.HandleFuncAuthorized("/hub/rename", hub.HandleRename).Methods("POST")
-	server.HandleFuncAuthorized("/hub/users/add", hub.HandleAddUsers).Methods("POST")
-	server.HandleFuncAuthorized("/hub/users/remove", hub.HandleRemoveUsers).Methods("POST")
+	jsonServer := Server{server.NewRoute().Subrouter()}
+	jsonServer.Use(jsonMW)
+	jsonServer.HandleFunc("/login", security.HandleLogin).Methods("POST")
+	jsonServer.HandleFunc("/user", user.HandleAdd).Methods("POST")
+	jsonServer.HandleFuncAuthorized("/createIndexes", security.HandleCreateIndexes).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/user/me", security.HandleMe).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/user/me/hubs", hub.HandleFindMyHubs).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/hub", hub.HandleAdd).Methods("POST")
+	jsonServer.HandleFuncAuthorized("/hub", hub.HandleGet).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/hub", hub.HandleDelete).Methods("DELETE")
+	jsonServer.HandleFuncAuthorized("/hub/rename", hub.HandleRename).Methods("POST")
+	jsonServer.HandleFuncAuthorized("/hub/users/add", hub.HandleAddUsers).Methods("POST")
+	jsonServer.HandleFuncAuthorized("/hub/users/remove", hub.HandleRemoveUsers).Methods("POST")
+	jsonServer.HandleFuncAuthorized("/upload", HandleUpload).Methods("POST")
+	server.PathPrefix("/wayne/{?:\\w{24}}/{?:[\\w\\.]+}").Handler(http.StripPrefix("/wayne/", http.FileServer(http.Dir(ResourceRoot))))
 	return http.ListenAndServe(":8080", server)
 }
 

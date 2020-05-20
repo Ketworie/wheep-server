@@ -23,9 +23,6 @@ func HandleGetByAlias(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	err = json.NewEncoder(w).Encode(View{
-		Alias: u.Alias,
-		Name:  u.Name,
-	})
+	err = json.NewEncoder(w).Encode(u.View())
 	return err
 }
