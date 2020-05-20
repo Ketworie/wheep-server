@@ -42,6 +42,13 @@ func (r *Repository) Rename(hub Model) error {
 	return err
 }
 
+func (r *Repository) ChangeImage(hub Model) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": hub.ID}, bson.M{"$set": bson.M{"image": hub.Image}})
+	return err
+}
+
 func (r *Repository) FindByUser(userId primitive.ObjectID) ([]Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()

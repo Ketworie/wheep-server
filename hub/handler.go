@@ -24,6 +24,7 @@ func HandleAdd(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) e
 	}
 	add, err := service.Add(Model{
 		Name:  av.Name,
+		Image: av.Image,
 		Users: users,
 	})
 	if err != nil {
@@ -70,6 +71,28 @@ func HandleRename(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	err = service.Rename(Model{
 		ID:   v.ID,
 		Name: v.Name,
+	})
+	if err != nil {
+		return err
+	}
+	get, err := service.Get(v.ID)
+	if err != nil {
+		return err
+	}
+	err = json.NewEncoder(w).Encode(get.View())
+	return err
+}
+
+func HandleChangeImage(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	var v View
+	err := json.NewDecoder(r.Body).Decode(&v)
+	if err != nil {
+		return err
+	}
+	service := GetService()
+	err = service.ChangeImage(Model{
+		ID:    v.ID,
+		Image: v.Image,
 	})
 	if err != nil {
 		return err

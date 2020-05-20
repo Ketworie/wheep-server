@@ -21,7 +21,7 @@ func HandleUpload(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request
 			log.Print(closeErr)
 		}
 	}()
-	resourceAddress, err := Upload(u, file)
+	resourceAddress, err := Upload(uid, file)
 	if err != nil {
 		return err
 	}

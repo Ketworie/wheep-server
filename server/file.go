@@ -6,11 +6,10 @@ import (
 	"mime/multipart"
 	"os"
 	"path"
-	"wheep-server/user"
 )
 
-func Upload(u user.Model, file multipart.File) (string, error) {
-	fileDir := u.ID.Hex()
+func Upload(uid primitive.ObjectID, file multipart.File) (string, error) {
+	fileDir := uid.Hex()
 	fileName := primitive.NewObjectID().Hex()
 	fileExtension := ".jpg"
 	filePath := path.Join(ResourceRoot, fileDir, fileName+fileExtension)

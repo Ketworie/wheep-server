@@ -5,7 +5,6 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"wheep-server/hub"
 	"wheep-server/user"
 )
 
@@ -26,7 +25,7 @@ func HandleCreateIndexes(uid primitive.ObjectID, w http.ResponseWriter, r *http.
 }
 
 func HandleMe(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	model, err := hub.GetService().Get(uid)
+	model, err := user.GetService().Get(uid)
 	if err != nil {
 		return err
 	}
