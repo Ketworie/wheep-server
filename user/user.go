@@ -15,6 +15,7 @@ type Model struct {
 
 func (u Model) View() View {
 	return View{
+		ID:    u.ID,
 		Alias: u.Alias,
 		Name:  u.Name,
 		Image: u.Image,
@@ -22,7 +23,8 @@ func (u Model) View() View {
 }
 
 type View struct {
-	Alias string `json:"alias"`
-	Name  string `json:"name"`
-	Image string `json:"image"`
+	ID    primitive.ObjectID `json:"id"`
+	Alias string             `json:"alias"`
+	Name  string             `json:"name"`
+	Image string             `json:"image"`
 }
