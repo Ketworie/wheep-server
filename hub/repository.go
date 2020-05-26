@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"wheep-server/db"
 )
 
@@ -75,4 +76,18 @@ func (r *Repository) RemoveUsers(id primitive.ObjectID, users []primitive.Object
 	defer cancel()
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$pull": bson.M{"users": bson.M{"$in": users}}})
 	return err
+}
+
+func (r *Repository) IsMember(id primitive.ObjectID, userId primitive.ObjectID) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	projection := options.FindOne().SetProjection(bson.M{"_id": 1})
+	err := r.collection.FindOne(ctx, bson.M{"_id": id, "users": bson.M{"$in": []primitive.ObjectID{userId}}}, projection).Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

@@ -38,6 +38,7 @@ type Message struct {
 	ID     primitive.ObjectID `bson:"_id"`
 	UserId primitive.ObjectID `bson:"userId"`
 	HubId  primitive.ObjectID `bson:"hubId"`
+	SubId  uint16             `bson:"subId"`
 	Text   string             `bson:"text"`
 	Date   time.Time          `bson:"date"`
 }

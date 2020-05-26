@@ -65,6 +65,7 @@ func StartServer() error {
 	jsonServer.HandleFuncAuthorized("/hub/users/add", hub.HandleAddUsers).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/hub/users/remove", hub.HandleRemoveUsers).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/upload", HandleUpload).Methods("POST")
+
 	server.PathPrefix("/wayne/{?:\\w{24}}/{?:[\\w\\.]+}").Handler(http.StripPrefix("/wayne/", http.FileServer(http.Dir(ResourceRoot))))
 	return http.ListenAndServe(":8080", server)
 }
