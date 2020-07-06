@@ -78,11 +78,11 @@ func (r *Repository) RemoveUsers(id primitive.ObjectID, users []primitive.Object
 	return err
 }
 
-func (r *Repository) IsMember(id primitive.ObjectID, userId primitive.ObjectID) (bool, error) {
+func (r *Repository) IsMember(hubId primitive.ObjectID, userId primitive.ObjectID) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	projection := options.FindOne().SetProjection(bson.M{"_id": 1})
-	err := r.collection.FindOne(ctx, bson.M{"_id": id, "users": bson.M{"$in": []primitive.ObjectID{userId}}}, projection).Err()
+	err := r.collection.FindOne(ctx, bson.M{"_id": hubId, "users": bson.M{"$in": []primitive.ObjectID{userId}}}, projection).Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil

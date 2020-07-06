@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io/ioutil"
 	"mime/multipart"
@@ -10,7 +11,7 @@ import (
 
 func Upload(uid primitive.ObjectID, file multipart.File) (string, error) {
 	fileDir := uid.Hex()
-	fileName := primitive.NewObjectID().Hex()
+	fileName := uuid.New().String()
 	fileExtension := ".jpg"
 	filePath := path.Join(ResourceRoot, fileDir, fileName+fileExtension)
 	err := os.MkdirAll(path.Join(ResourceRoot, fileDir), os.ModePerm)

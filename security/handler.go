@@ -3,6 +3,7 @@ package security
 import (
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"wheep-server/user"
@@ -12,11 +13,11 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 	gate := GetGate()
 	login := r.PostFormValue("login")
 	password := r.PostFormValue("password")
-	u, err := gate.Login(login, password)
+	token, err := gate.Login(login, password)
 	if err != nil {
 		return err
 	}
-	w.Header().Set("X-Auth-Token", u.Hex())
+	w.Header().Set("X-Auth-Token", token)
 	return nil
 }
 
@@ -33,16 +34,16 @@ func HandleMe(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) er
 }
 
 func HandleAuthorize(w http.ResponseWriter, r *http.Request) (primitive.ObjectID, error) {
-	get := r.Header.Get("X-Auth-Token")
-	if len(get) == 0 {
+	token := r.Header.Get("X-Auth-Token")
+	if len(token) == 0 {
 		return primitive.NilObjectID, errors.New("unauthorized")
 	}
-	id, err := primitive.ObjectIDFromHex(get)
+	sid, err := uuid.Parse(token)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
 	gate := GetGate()
-	uid, err := gate.Authorize(id)
+	uid, err := gate.Authorize(sid)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}

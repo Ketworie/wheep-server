@@ -30,7 +30,7 @@ func initDB() {
 
 func initClient() {
 	var err error
-	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://80.73.198.109:8333"))
+	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://185.162.10.137:8333"))
 	if err != nil {
 		panic(err)
 	}

@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,7 +18,7 @@ import (
 const sessionLimit int = 5
 
 type Session struct {
-	ID     primitive.ObjectID `bson:"_id"`
+	ID     uuid.UUID          `bson:"_id"`
 	UserId primitive.ObjectID `bson:"userId"`
 	Last   time.Time          `bson:"last"`
 }
@@ -42,16 +43,16 @@ func GetGate() *Gate {
 	return g
 }
 
-func (g *Gate) Login(login string, password string) (primitive.ObjectID, error) {
+func (g *Gate) Login(login string, password string) (string, error) {
 	u, err := g.us.GetByLogin(login)
 	if err != nil {
-		return primitive.NilObjectID, err
+		return "", err
 	}
 	if u.Password != password {
-		return primitive.NilObjectID, errors.New("password incorrect")
+		return "", errors.New("password incorrect")
 	}
 	session := Session{
-		ID:     primitive.NewObjectID(),
+		ID:     uuid.New(),
 		UserId: u.ID,
 		Last:   time.Now(),
 	}
@@ -61,10 +62,10 @@ func (g *Gate) Login(login string, password string) (primitive.ObjectID, error) 
 	go func() {
 		e := g.checkSessionLimit(u.ID)
 		if e != nil {
-			log.Printf("Cannot check session limit. %v", e)
+			log.Fatalf("Cannot check session limit. %v", e)
 		}
 	}()
-	return session.ID, err
+	return session.ID.String(), err
 }
 
 func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
@@ -72,7 +73,7 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 	defer cancel()
 	find, _ := g.sc.Find(ctx, bson.M{"userId": userId}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
 	var res []struct {
-		ID primitive.ObjectID `bson:"_id"`
+		ID uuid.UUID `bson:"_id"`
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
@@ -81,7 +82,7 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 		return err
 	}
 	if len(res) != 0 {
-		ids := make([]primitive.ObjectID, len(res))
+		ids := make([]uuid.UUID, len(res))
 		for i, re := range res {
 			ids[i] = re.ID
 		}
@@ -95,7 +96,7 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 	return nil
 }
 
-func (g *Gate) Authorize(sid primitive.ObjectID) (primitive.ObjectID, error) {
+func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	one := g.sc.FindOne(ctx, bson.M{"_id": sid})
