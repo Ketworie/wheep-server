@@ -15,7 +15,11 @@ func HandleSend(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 	vm.UserId = uid
-	return Send(vm)
+	send, err := Send(vm)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(send.View())
 }
 
 func HandleLast(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -27,7 +31,7 @@ func HandleLast(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(w).Encode(last)
+	return json.NewEncoder(w).Encode(last.View())
 }
 
 func HandlePrev(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -35,12 +39,15 @@ func HandlePrev(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return err
 	}
-	date, err := time.Parse(time.RFC3339, r.FormValue("date"))
-	last, err := message.GetService().Prev(hubId, date)
+	date, err := time.Parse("2006-01-02T15:04:05.999Z[MST]", r.FormValue("date"))
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(w).Encode(last)
+	prev, err := message.GetService().Prev(hubId, date)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(prev.View())
 }
 
 func HandleNext(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -48,10 +55,13 @@ func HandleNext(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return err
 	}
-	date, err := time.Parse(time.RFC3339, r.FormValue("date"))
+	date, err := time.Parse("2006-01-02T15:04:05.999Z[MST]", r.FormValue("date"))
+	if err != nil {
+		return err
+	}
 	last, err := message.GetService().Next(hubId, date)
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(w).Encode(last)
+	return json.NewEncoder(w).Encode(last.View())
 }

@@ -49,11 +49,11 @@ func (r *Repository) Last(hubId primitive.ObjectID) (Model, error) {
 	return m, nil
 }
 
-func (r *Repository) Prev(hubId primitive.ObjectID, time time.Time) ([]Model, error) {
+func (r *Repository) Prev(hubId primitive.ObjectID, time time.Time) (ModelList, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	ms := []Model{}
-	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$lt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(20).SetSort(bson.M{"date": -1}))
+	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$lt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(bson.M{"date": -1}))
 	if err != nil {
 		return nil, err
 	}
@@ -63,11 +63,11 @@ func (r *Repository) Prev(hubId primitive.ObjectID, time time.Time) ([]Model, er
 	return ms, err
 }
 
-func (r *Repository) Next(hubId primitive.ObjectID, time time.Time) ([]Model, error) {
+func (r *Repository) Next(hubId primitive.ObjectID, time time.Time) (ModelList, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	ms := []Model{}
-	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$gt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(20).SetSort(bson.M{"date": 1}))
+	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$gt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(bson.M{"date": 1}))
 	if err != nil {
 		return nil, err
 	}

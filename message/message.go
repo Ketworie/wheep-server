@@ -15,9 +15,31 @@ type Model struct {
 }
 
 type View struct {
+	ID     primitive.ObjectID `json:"id"`
 	UserId primitive.ObjectID `json:"userId"`
 	HubId  primitive.ObjectID `json:"hubId"`
 	Text   string             `json:"text"`
 	Date   time.Time          `json:"date"`
-	PrevID primitive.ObjectID `bson:"prevId"`
+	NextId primitive.ObjectID `json:"nextId"`
+}
+
+func (m Model) View() View {
+	return View{
+		ID:     m.ID,
+		UserId: m.UserId,
+		HubId:  m.HubId,
+		Text:   m.Text,
+		Date:   m.Date,
+		NextId: m.NextId,
+	}
+}
+
+type ModelList []Model
+
+func (ml ModelList) View() []View {
+	vl := []View{}
+	for _, model := range ml {
+		vl = append(vl, model.View())
+	}
+	return vl
 }

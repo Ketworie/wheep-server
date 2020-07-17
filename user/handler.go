@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -20,6 +21,19 @@ func HandleGetByAlias(w http.ResponseWriter, r *http.Request) error {
 	alias := r.FormValue("alias")
 	service := GetService()
 	u, err := service.GetByAlias(alias)
+	if err != nil {
+		return err
+	}
+	err = json.NewEncoder(w).Encode(u.View())
+	return err
+}
+
+func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
+	if err != nil {
+		return err
+	}
+	u, err := GetService().Get(id)
 	if err != nil {
 		return err
 	}
