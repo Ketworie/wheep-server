@@ -22,7 +22,7 @@ func Send(mv message.View) (message.Model, error) {
 		HubId:  mv.HubId,
 		Text:   mv.Text,
 		Date:   time.Now(),
-		NextId: primitive.ObjectID{},
+		PrevId: primitive.ObjectID{},
 	})
 	return model, err
 }

@@ -11,7 +11,7 @@ type Model struct {
 	HubId  primitive.ObjectID `bson:"hubId"`
 	Text   string             `bson:"text"`
 	Date   time.Time          `bson:"date"`
-	NextId primitive.ObjectID `bson:"nextId"`
+	PrevId primitive.ObjectID `bson:"prevId"`
 }
 
 type View struct {
@@ -20,7 +20,7 @@ type View struct {
 	HubId  primitive.ObjectID `json:"hubId"`
 	Text   string             `json:"text"`
 	Date   time.Time          `json:"date"`
-	NextId primitive.ObjectID `json:"nextId"`
+	PrevId primitive.ObjectID `json:"prevId"`
 }
 
 func (m Model) View() View {
@@ -30,7 +30,7 @@ func (m Model) View() View {
 		HubId:  m.HubId,
 		Text:   m.Text,
 		Date:   m.Date,
-		NextId: m.NextId,
+		PrevId: m.PrevId,
 	}
 }
 

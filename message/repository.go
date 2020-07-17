@@ -30,7 +30,17 @@ func (r *Repository) Add(m Model) (Model, error) {
 	_, err = session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (i interface{}, err error) {
 		ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
-		r.collection.FindOneAndUpdate(ctx, bson.M{"nextId": primitive.NilObjectID}, bson.M{"$set": bson.M{"nextId": m.ID}}, options.FindOneAndUpdate().SetSort(bson.M{"date": -1}))
+		var prev Model
+		err = r.collection.FindOne(ctx, bson.M{}, options.FindOne().SetSort(bson.M{"date": -1}).SetProjection(bson.M{"_id": 1})).Decode(&prev)
+		if err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+			defer cancel()
+			documents, _ := r.collection.CountDocuments(ctx, nil)
+			if documents > 0 {
+				return nil, err
+			}
+		}
+		m.PrevId = prev.ID
 		ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
 		return r.collection.InsertOne(ctx, m)
