@@ -21,12 +21,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func HandleCreateIndexes(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleCreateIndexes(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	return user.GetService().CreateIndexes()
 }
 
-func HandleMe(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	model, err := user.GetService().Get(uid)
+func HandleMe(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	model, err := user.GetService().Get(userId)
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 	"wheep-server/chat"
 	"wheep-server/hub"
+	"wheep-server/notebook"
 	"wheep-server/security"
 	"wheep-server/user"
 )
@@ -60,6 +61,9 @@ func StartServer() error {
 	jsonServer.HandleFuncAuthorized("/user", user.HandleGet).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/user/me", security.HandleMe).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/user/me/hubs", hub.HandleFindMyHubs).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/user/contact/list", notebook.HandleGetContacts).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/user/contact/add", notebook.HandleAddContact).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/user/contact/remove", notebook.HandleRemoveContact).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/hub", hub.HandleAdd).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/hub", hub.HandleGet).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/hub", hub.HandleDelete).Methods("DELETE")

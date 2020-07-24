@@ -8,13 +8,13 @@ import (
 	"wheep-server/message"
 )
 
-func HandleSend(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var vm message.View
 	err := json.NewDecoder(r.Body).Decode(&vm)
 	if err != nil {
 		return err
 	}
-	vm.UserId = uid
+	vm.UserId = userId
 	send, err := Send(vm)
 	if err != nil {
 		return err
@@ -22,7 +22,7 @@ func HandleSend(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 	return json.NewEncoder(w).Encode(send.View())
 }
 
-func HandleLast(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleLast(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	hubId, err := primitive.ObjectIDFromHex(r.FormValue("hub"))
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func HandleLast(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 	return json.NewEncoder(w).Encode(last.View())
 }
 
-func HandlePrev(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandlePrev(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	hubId, err := primitive.ObjectIDFromHex(r.FormValue("hub"))
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func HandlePrev(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) 
 	return json.NewEncoder(w).Encode(prev.View())
 }
 
-func HandleNext(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleNext(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	hubId, err := primitive.ObjectIDFromHex(r.FormValue("hub"))
 	if err != nil {
 		return err

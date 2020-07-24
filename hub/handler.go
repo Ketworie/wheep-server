@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func HandleAdd(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleAdd(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var av AddView
 	err := json.NewDecoder(r.Body).Decode(&av)
 	if err != nil {
@@ -15,7 +15,7 @@ func HandleAdd(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) e
 	}
 	service := GetService()
 	userMap := make(map[primitive.ObjectID]bool)
-	users := []primitive.ObjectID{uid}
+	users := []primitive.ObjectID{userId}
 	for _, v := range av.Users {
 		if _, ok := userMap[v]; !ok {
 			userMap[v] = true
@@ -37,7 +37,7 @@ func HandleAdd(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func HandleGet(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func HandleGet(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func HandleDelete(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleDelete(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func HandleDelete(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	return GetService().Delete(id)
 }
 
-func HandleRename(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleRename(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var v View
 	err := json.NewDecoder(r.Body).Decode(&v)
 	if err != nil {
@@ -83,7 +83,7 @@ func HandleRename(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	return err
 }
 
-func HandleChangeImage(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleChangeImage(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var v View
 	err := json.NewDecoder(r.Body).Decode(&v)
 	if err != nil {
@@ -105,7 +105,7 @@ func HandleChangeImage(uid primitive.ObjectID, w http.ResponseWriter, r *http.Re
 	return err
 }
 
-func HandleAddUsers(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleAddUsers(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var users []primitive.ObjectID
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
@@ -131,7 +131,7 @@ func HandleAddUsers(uid primitive.ObjectID, w http.ResponseWriter, r *http.Reque
 	return nil
 }
 
-func HandleRemoveUsers(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleRemoveUsers(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var users []primitive.ObjectID
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
@@ -157,7 +157,7 @@ func HandleRemoveUsers(uid primitive.ObjectID, w http.ResponseWriter, r *http.Re
 	return nil
 }
 
-func HandleFindByUser(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleFindByUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	s := r.FormValue("id")
 	userId, err := primitive.ObjectIDFromHex(s)
 	if err != nil {
@@ -175,9 +175,9 @@ func HandleFindByUser(uid primitive.ObjectID, w http.ResponseWriter, r *http.Req
 	return json.NewEncoder(w).Encode(views)
 }
 
-func HandleFindMyHubs(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleFindMyHubs(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	service := GetService()
-	hubs, err := service.FindByUser(uid)
+	hubs, err := service.FindByUser(userId)
 	if err != nil {
 		return err
 	}

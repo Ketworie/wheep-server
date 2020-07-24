@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func HandleUpload(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleUpload(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func HandleUpload(uid primitive.ObjectID, w http.ResponseWriter, r *http.Request
 			log.Print(closeErr)
 		}
 	}()
-	resourceAddress, err := Upload(uid, file)
+	resourceAddress, err := Upload(userId, file)
 	if err != nil {
 		return err
 	}

@@ -9,8 +9,8 @@ import (
 	"path"
 )
 
-func Upload(uid primitive.ObjectID, file multipart.File) (string, error) {
-	fileDir := uid.Hex()
+func Upload(userId primitive.ObjectID, file multipart.File) (string, error) {
+	fileDir := userId.Hex()
 	fileName := uuid.New().String()
 	fileExtension := ".jpg"
 	filePath := path.Join(ResourceRoot, fileDir, fileName+fileExtension)
