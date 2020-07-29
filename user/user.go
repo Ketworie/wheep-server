@@ -32,3 +32,13 @@ type View struct {
 	Image        string             `json:"image"`
 	LastModified time.Time          `json:"lastModified"`
 }
+
+type ModelList []Model
+
+func (ml ModelList) View() []View {
+	vl := []View{}
+	for _, model := range ml {
+		vl = append(vl, model.View())
+	}
+	return vl
+}

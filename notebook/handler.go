@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"wheep-server/user"
 )
 
 func HandleGetContacts(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	contacts, err := GetService().GetContacts(userId)
-	if err != nil {
+	if err != mongo.ErrNoDocuments {
 		return err
 	}
 	return json.NewEncoder(w).Encode(contacts)

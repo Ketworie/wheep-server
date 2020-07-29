@@ -40,3 +40,17 @@ func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	err = json.NewEncoder(w).Encode(u.View())
 	return err
 }
+
+func HandleGetList(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	var is []primitive.ObjectID
+	err := json.NewDecoder(r.Body).Decode(&is)
+	if err != nil {
+		return err
+	}
+	us, err := GetService().GetList(is)
+	if err != nil {
+		return err
+	}
+	err = json.NewEncoder(w).Encode(us.View())
+	return err
+}

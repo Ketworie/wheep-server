@@ -30,6 +30,20 @@ func (r *Repository) Get(id primitive.ObjectID) (Model, error) {
 	return m, err
 }
 
+func (r *Repository) GetList(id []primitive.ObjectID) (ModelList, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	var m []Model
+	find, err := r.collection.Find(ctx, db.M{"_id": db.M{"$in": id}})
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	err = find.All(ctx, &m)
+	return m, err
+}
+
 func (r *Repository) GetByLogin(login string) (Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
