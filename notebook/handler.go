@@ -6,30 +6,25 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
-	"wheep-server/user"
 )
 
 func HandleGetContacts(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	contacts, err := GetService().GetContacts(userId)
-	if err != mongo.ErrNoDocuments {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return err
 	}
 	return json.NewEncoder(w).Encode(contacts)
 }
 
 func HandleAddContact(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	alias := r.FormValue("alias")
-	if len(alias) > 0 {
-		return errors.New("no alias specified")
-	}
-	model, err := user.GetService().GetByAlias(alias)
+	contactId, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	if err != nil {
 		return err
 	}
-	if userId == model.ID {
+	if userId == contactId {
 		return errors.New("you cannot add yourself to contacts")
 	}
-	return GetService().AddContact(userId, model.ID)
+	return GetService().AddContact(userId, contactId)
 }
 
 func HandleRemoveContact(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
