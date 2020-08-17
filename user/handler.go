@@ -30,10 +30,17 @@ func HandleGetByAlias(w http.ResponseWriter, r *http.Request) error {
 
 func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
-	if err != nil {
+	alias := r.FormValue("alias")
+	if err != nil && len(alias) == 0 {
 		return err
 	}
-	u, err := GetService().Get(id)
+	service := GetService()
+	var u Model
+	if len(alias) == 0 {
+		u, err = service.Get(id)
+	} else {
+		u, err = service.GetByAlias(alias)
+	}
 	if err != nil {
 		return err
 	}

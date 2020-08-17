@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -57,6 +58,9 @@ func (r *Repository) GetByAlias(alias string) (Model, error) {
 	defer cancel()
 	var m Model
 	err := r.collection.FindOne(ctx, db.M{"alias": alias}).Decode(&m)
+	if err == mongo.ErrNoDocuments {
+		return m, errors.New("user not found")
+	}
 	return m, err
 }
 

@@ -26,6 +26,9 @@ func HandleAddContact(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
+	if userId == model.ID {
+		return errors.New("you cannot add yourself to contacts")
+	}
 	return GetService().AddContact(userId, model.ID)
 }
 
