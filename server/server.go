@@ -61,7 +61,7 @@ func StartServer() error {
 	jsonServer.HandleFuncAuthorized("/user/list", user.HandleGetList).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/me", security.HandleMe).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/me/hubs", hub.HandleFindMyHubs).Methods("GET")
-	jsonServer.HandleFuncAuthorized("/avatar/update", user.HandleUpdateAvatar).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/avatar/update", user.HandleUpdateAvatar).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/contact/list", notebook.HandleGetContacts).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/contact/add", notebook.HandleAddContact).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/contact/remove", notebook.HandleRemoveContact).Methods("GET")

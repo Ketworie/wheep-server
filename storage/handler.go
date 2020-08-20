@@ -26,6 +26,6 @@ func HandleUpload(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return err
 	}
-	_, err = w.Write([]byte(resourceAddress))
+	_, err = w.Write([]byte("\"" + resourceAddress + "\""))
 	return err
 }

@@ -51,7 +51,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	_, err = w.Write([]byte(resourceAddress))
+	_, err = w.Write([]byte("\"" + resourceAddress + "\""))
 	return err
 }
 func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
