@@ -1,4 +1,4 @@
-package server
+package storage
 
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"

@@ -1,4 +1,4 @@
-package server
+package storage
 
 import (
 	"github.com/google/uuid"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 )
+
+var ResourceRoot = "/resources/"
 
 func Upload(userId primitive.ObjectID, file multipart.File) (string, error) {
 	fileDir := userId.Hex()

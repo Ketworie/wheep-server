@@ -11,10 +11,9 @@ import (
 	"wheep-server/hub"
 	"wheep-server/notebook"
 	"wheep-server/security"
+	"wheep-server/storage"
 	"wheep-server/user"
 )
-
-var ResourceRoot = "/resources/"
 
 type Server struct {
 	*mux.Router
@@ -76,8 +75,8 @@ func StartServer() error {
 	jsonServer.HandleFuncAuthorized("/hub/rename", hub.HandleRename).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/hub/users/add", hub.HandleAddUsers).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/hub/users/remove", hub.HandleRemoveUsers).Methods("POST")
-	jsonServer.HandleFuncAuthorized("/upload", HandleUpload).Methods("POST")
-	server.PathPrefix("/wayne/{?:\\w{24}}/{?:[\\w\\.]+}").Handler(http.StripPrefix("/wayne/", http.FileServer(http.Dir(ResourceRoot))))
+	jsonServer.HandleFuncAuthorized("/upload", storage.HandleUpload).Methods("POST")
+	server.PathPrefix("/wayne/{?:\\w{24}}/{?:[\\w\\.]+}").Handler(http.StripPrefix("/wayne/", http.FileServer(http.Dir(storage.ResourceRoot))))
 	return http.ListenAndServe(":8080", server)
 }
 

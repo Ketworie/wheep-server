@@ -83,6 +83,13 @@ func (r *Repository) Update(user Model) error {
 	return err
 }
 
+func (r *Repository) UpdateAvatar(id primitive.ObjectID, uri string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$set": db.M{"image": uri}}.LastModified())
+	return err
+}
+
 func (r *Repository) CreateIndexes() error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
