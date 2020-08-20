@@ -7,6 +7,7 @@ import (
 )
 
 func HandleUpload(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	// 10 MB
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		return err
