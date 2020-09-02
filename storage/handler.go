@@ -6,13 +6,13 @@ import (
 	"net/http"
 )
 
-func HandleUpload(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleUploadImage(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	// 10 MB
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		return err
 	}
-	file, _, err := r.FormFile("data")
+	file, _, err := r.FormFile("image")
 	if err != nil {
 		return err
 	}
