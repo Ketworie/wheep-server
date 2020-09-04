@@ -8,13 +8,22 @@ import (
 
 func HandleUploadImage(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	// 10 MB
-	err := r.ParseMultipartForm(10 << 20)
+	resourceAddress, err := UploadImage(userId, r, 10)
 	if err != nil {
 		return err
 	}
+	_, err = w.Write([]byte("\"" + resourceAddress + "\""))
+	return err
+}
+
+func UploadImage(userId primitive.ObjectID, r *http.Request, maxMemory int64) (string, error) {
+	err := r.ParseMultipartForm(maxMemory << 20)
+	if err != nil {
+		return "", err
+	}
 	file, _, err := r.FormFile("image")
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer func() {
 		closeErr := file.Close()
@@ -23,9 +32,5 @@ func HandleUploadImage(userId primitive.ObjectID, w http.ResponseWriter, r *http
 		}
 	}()
 	resourceAddress, err := Upload(userId, file)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write([]byte("\"" + resourceAddress + "\""))
-	return err
+	return resourceAddress, err
 }

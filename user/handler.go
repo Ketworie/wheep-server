@@ -3,7 +3,6 @@ package user
 import (
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log"
 	"net/http"
 	"wheep-server/storage"
 )
@@ -32,21 +31,10 @@ func HandleGetByAlias(w http.ResponseWriter, r *http.Request) error {
 
 func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	// 5 MB
-	err := r.ParseMultipartForm(10 << 20)
+	resourceAddress, err := storage.UploadImage(userId, r, 5)
 	if err != nil {
 		return err
 	}
-	file, _, err := r.FormFile("image")
-	if err != nil {
-		return err
-	}
-	defer func() {
-		closeErr := file.Close()
-		if closeErr != nil {
-			log.Print(closeErr)
-		}
-	}()
-	resourceAddress, err := storage.Upload(userId, file)
 	err = GetService().UpdateAvatar(userId, resourceAddress)
 	if err != nil {
 		return err
@@ -54,6 +42,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	_, err = w.Write([]byte("\"" + resourceAddress + "\""))
 	return err
 }
+
 func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	alias := r.FormValue("alias")

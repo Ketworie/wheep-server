@@ -58,10 +58,10 @@ func (r *Repository) Rename(hub Model) error {
 	return err
 }
 
-func (r *Repository) ChangeImage(hub Model) error {
+func (r *Repository) UpdateAvatar(hubId primitive.ObjectID, image string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": hub.ID}, db.M{"$set": db.M{"image": hub.Image}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, db.M{"_id": hubId}, db.M{"$set": db.M{"image": image}}.LastModified())
 	return err
 }
 
