@@ -2,7 +2,6 @@ package hub
 
 import (
 	"encoding/json"
-	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
@@ -68,12 +67,9 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	isMember, err := GetService().IsMember(hubId, userId)
+	err = GetService().AssertMember(hubId, userId)
 	if err != nil {
 		return err
-	}
-	if !isMember {
-		return errors.New("you are not a member")
 	}
 	// 5 MB
 	resourceAddress, err := storage.UploadImage(userId, r, 5)
@@ -89,16 +85,17 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 }
 
 func HandleRename(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	var v View
-	err := json.NewDecoder(r.Body).Decode(&v)
+	hubId, err := primitive.ObjectIDFromHex(r.FormValue("id"))
 	if err != nil {
 		return err
 	}
 	service := GetService()
-	err = service.Rename(Model{
-		ID:   v.ID,
-		Name: v.Name,
-	})
+	err = service.AssertMember(hubId, userId)
+	if err != nil {
+		return err
+	}
+	name := r.FormValue("name")
+	err = service.Rename(hubId, name)
 	return err
 }
 
@@ -127,12 +124,9 @@ func HandleRemoveUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 		return err
 	}
 	service := GetService()
-	isMember, err := service.IsMember(id, userId)
+	err = service.AssertMember(id, userId)
 	if err != nil {
 		return err
-	}
-	if !isMember {
-		return errors.New("you are not a member")
 	}
 	err = service.RemoveUser(id, removed)
 	return err

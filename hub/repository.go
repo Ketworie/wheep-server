@@ -2,6 +2,7 @@ package hub
 
 import (
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -51,10 +52,10 @@ func (r *Repository) Delete(id primitive.ObjectID) error {
 	return err
 }
 
-func (r *Repository) Rename(hub Model) error {
+func (r *Repository) Rename(id primitive.ObjectID, name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": hub.ID}, db.M{"$set": db.M{"name": hub.Name}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$set": db.M{"name": name}}.LastModified())
 	return err
 }
 
@@ -91,6 +92,17 @@ func (r *Repository) RemoveUser(id primitive.ObjectID, user primitive.ObjectID) 
 	defer cancel()
 	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$pull": db.M{"users": user}}.LastModified())
 	return err
+}
+
+func (r Repository) AssertMember(hubId primitive.ObjectID, userId primitive.ObjectID) error {
+	isMember, err := r.IsMember(hubId, userId)
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return errors.New("you are not a member of this hub")
+	}
+	return nil
 }
 
 func (r *Repository) IsMember(hubId primitive.ObjectID, userId primitive.ObjectID) (bool, error) {
