@@ -102,13 +102,13 @@ func HandleRename(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 	return err
 }
 
-func HandleAddUsers(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+func HandleAddUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var users []primitive.ObjectID
 	err := json.NewDecoder(r.Body).Decode(&users)
 	if err != nil {
 		return err
 	}
-	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
+	id, err := primitive.ObjectIDFromHex(r.FormValue("hubId"))
 	if err != nil {
 		return err
 	}
@@ -117,18 +117,24 @@ func HandleAddUsers(userId primitive.ObjectID, w http.ResponseWriter, r *http.Re
 	return err
 }
 
-func HandleRemoveUsers(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	var users []primitive.ObjectID
-	err := json.NewDecoder(r.Body).Decode(&users)
+func HandleRemoveUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	removed, err := primitive.ObjectIDFromHex(r.FormValue("userId"))
 	if err != nil {
 		return err
 	}
-	id, err := primitive.ObjectIDFromHex(r.FormValue("id"))
+	id, err := primitive.ObjectIDFromHex(r.FormValue("hubId"))
 	if err != nil {
 		return err
 	}
 	service := GetService()
-	err = service.RemoveUsers(id, users)
+	isMember, err := service.IsMember(id, userId)
+	if err != nil {
+		return err
+	}
+	if !isMember {
+		return errors.New("you are not a member")
+	}
+	err = service.RemoveUser(id, removed)
 	return err
 }
 

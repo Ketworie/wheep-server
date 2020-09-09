@@ -86,10 +86,10 @@ func (r *Repository) AddUsers(id primitive.ObjectID, users []primitive.ObjectID)
 	return err
 }
 
-func (r *Repository) RemoveUsers(id primitive.ObjectID, users []primitive.ObjectID) error {
+func (r *Repository) RemoveUser(id primitive.ObjectID, user primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$pull": db.M{"users": db.M{"$in": users}}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$pull": db.M{"users": user}}.LastModified())
 	return err
 }
 
