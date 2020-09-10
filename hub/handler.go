@@ -101,13 +101,16 @@ func HandleRename(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 
 func HandleAddUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	var users []primitive.ObjectID
-	err := json.NewDecoder(r.Body).Decode(&users)
-	if err != nil {
-		return err
-	}
 	id, err := primitive.ObjectIDFromHex(r.FormValue("hubId"))
 	if err != nil {
 		return err
+	}
+	for _, s := range r.Form["userId"] {
+		userId, err := primitive.ObjectIDFromHex(s)
+		if err != nil {
+			return err
+		}
+		users = append(users, userId)
 	}
 	service := GetService()
 	err = service.AddUsers(id, users)
