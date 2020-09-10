@@ -7,16 +7,16 @@ import (
 	"mime/multipart"
 	"os"
 	"path"
+	"wheep-server/config"
 )
-
-var ResourceRoot = "/resources/"
 
 func Upload(userId primitive.ObjectID, file multipart.File) (string, error) {
 	fileDir := userId.Hex()
 	fileName := uuid.New().String()
 	fileExtension := ".jpg"
-	filePath := path.Join(ResourceRoot, fileDir, fileName+fileExtension)
-	err := os.MkdirAll(path.Join(ResourceRoot, fileDir), os.ModePerm)
+	resourceRoot := config.Get().ResourceRoot
+	filePath := path.Join(resourceRoot, fileDir, fileName+fileExtension)
+	err := os.MkdirAll(path.Join(resourceRoot, fileDir), os.ModePerm)
 	if err != nil {
 		return "", err
 	}

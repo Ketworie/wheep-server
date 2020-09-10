@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"sync"
 	"time"
+	"wheep-server/config"
 )
 
 var client *mongo.Client
@@ -30,7 +31,7 @@ func initDB() {
 
 func initClient() {
 	var err error
-	client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://185.162.10.137:8333"))
+	client, err = mongo.NewClient(options.Client().ApplyURI(config.Get().MongoAddress))
 	if err != nil {
 		panic(err)
 	}
