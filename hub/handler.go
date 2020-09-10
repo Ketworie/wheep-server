@@ -113,6 +113,10 @@ func HandleAddUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Req
 		users = append(users, userId)
 	}
 	service := GetService()
+	err = service.AssertMember(id, userId)
+	if err != nil {
+		return err
+	}
 	err = service.AddUsers(id, users)
 	return err
 }
