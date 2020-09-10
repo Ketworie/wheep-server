@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"sync"
@@ -41,11 +40,4 @@ func initClient() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-type M bson.M
-
-func (m M) LastModified() M {
-	m["$currentDate"] = M{"lastModified": true}
-	return m
 }

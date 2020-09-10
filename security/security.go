@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -70,7 +71,7 @@ func (g *Gate) Login(login string, password string) (string, error) {
 func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	find, _ := g.sc.Find(ctx, db.M{"userId": userId}, options.Find().SetProjection(db.M{"_id": 1}), options.Find().SetSort(db.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
+	find, _ := g.sc.Find(ctx, bson.M{"userId": userId}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
 	var res []struct {
 		ID uuid.UUID `bson:"_id"`
 	}
@@ -87,7 +88,7 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 		}
 		ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
-		_, err = g.sc.DeleteMany(ctx, db.M{"_id": db.M{"$in": ids}})
+		_, err = g.sc.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
 		if err != nil {
 			return err
 		}
@@ -98,7 +99,7 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	one := g.sc.FindOne(ctx, db.M{"_id": sid})
+	one := g.sc.FindOne(ctx, bson.M{"_id": sid})
 	var s Session
 	if one.Err() != nil {
 		return primitive.NilObjectID, one.Err()
@@ -107,7 +108,7 @@ func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
 	if err == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
-		_, err := g.sc.UpdateOne(ctx, db.M{"_id": s.ID}, db.M{"$set": db.M{"last": time.Now()}})
+		_, err := g.sc.UpdateOne(ctx, bson.M{"_id": s.ID}, bson.M{"$set": bson.M{"last": time.Now()}})
 		if err != nil {
 			return primitive.NilObjectID, err
 		}

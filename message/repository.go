@@ -2,6 +2,7 @@ package message
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -30,7 +31,7 @@ func (r *Repository) Add(m Model) (Model, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 		defer cancel()
 		var prev Model
-		err = r.collection.FindOne(ctx, db.M{}, options.FindOne().SetSort(db.M{"date": -1}).SetProjection(db.M{"_id": 1})).Decode(&prev)
+		err = r.collection.FindOne(ctx, bson.M{}, options.FindOne().SetSort(bson.M{"date": -1}).SetProjection(bson.M{"_id": 1})).Decode(&prev)
 		if err != nil {
 			ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 			defer cancel()
@@ -51,7 +52,7 @@ func (r *Repository) Last(hubId primitive.ObjectID) (Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	var m Model
-	err := r.collection.FindOne(ctx, db.M{"hubId": hubId}, options.FindOne().SetSort(db.M{"date": -1})).Decode(&m)
+	err := r.collection.FindOne(ctx, bson.M{"hubId": hubId}, options.FindOne().SetSort(bson.M{"date": -1})).Decode(&m)
 	if err != nil {
 		return Model{}, err
 	}
@@ -62,7 +63,7 @@ func (r *Repository) Prev(hubId primitive.ObjectID, time time.Time) (ModelList, 
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	ms := []Model{}
-	find, err := r.collection.Find(ctx, db.M{"date": db.M{"$lt": time}, "hubId": db.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(db.M{"date": -1}))
+	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$lt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(bson.M{"date": -1}))
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,7 @@ func (r *Repository) Next(hubId primitive.ObjectID, time time.Time) (ModelList, 
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	ms := []Model{}
-	find, err := r.collection.Find(ctx, db.M{"date": db.M{"$gt": time}, "hubId": db.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(db.M{"date": 1}))
+	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$gt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(bson.M{"date": 1}))
 	if err != nil {
 		return nil, err
 	}

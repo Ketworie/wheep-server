@@ -3,10 +3,10 @@ package hub
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 	"wheep-server/db"
 )
 
@@ -16,7 +16,6 @@ type Repository struct {
 
 func (r *Repository) Add(hub Model) (Model, error) {
 	hub.ID = primitive.NewObjectID()
-	hub.LastModified = time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	_, err := r.collection.InsertOne(ctx, hub)
@@ -27,7 +26,7 @@ func (r *Repository) Get(id primitive.ObjectID) (Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	var m Model
-	err := r.collection.FindOne(ctx, db.M{"_id": id}).Decode(&m)
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&m)
 	return m, err
 }
 
@@ -35,7 +34,7 @@ func (r *Repository) GetList(id []primitive.ObjectID) ([]Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
 	var m []Model
-	find, err := r.collection.Find(ctx, db.M{"_id": db.M{"$in": id}})
+	find, err := r.collection.Find(ctx, bson.M{"_id": bson.M{"$in": id}})
 	if err != nil {
 		return nil, err
 	}
@@ -48,28 +47,28 @@ func (r *Repository) GetList(id []primitive.ObjectID) ([]Model, error) {
 func (r *Repository) Delete(id primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.DeleteOne(ctx, db.M{"_id": id})
+	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }
 
 func (r *Repository) Rename(id primitive.ObjectID, name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$set": db.M{"name": name}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"name": name}})
 	return err
 }
 
 func (r *Repository) UpdateAvatar(hubId primitive.ObjectID, image string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": hubId}, db.M{"$set": db.M{"image": image}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": hubId}, bson.M{"$set": bson.M{"image": image}})
 	return err
 }
 
 func (r *Repository) FindByUser(userId primitive.ObjectID) ([]Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	find, err := r.collection.Find(ctx, db.M{"users": db.M{"$in": []primitive.ObjectID{userId}}})
+	find, err := r.collection.Find(ctx, bson.M{"users": bson.M{"$in": []primitive.ObjectID{userId}}})
 	if err != nil {
 		return nil, err
 	}
@@ -83,14 +82,14 @@ func (r *Repository) FindByUser(userId primitive.ObjectID) ([]Model, error) {
 func (r *Repository) AddUsers(id primitive.ObjectID, users []primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$addToSet": db.M{"users": db.M{"$each": users}}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$addToSet": bson.M{"users": bson.M{"$each": users}}})
 	return err
 }
 
 func (r *Repository) RemoveUser(id primitive.ObjectID, user primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, db.M{"_id": id}, db.M{"$pull": db.M{"users": user}}.LastModified())
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$pull": bson.M{"users": user}})
 	return err
 }
 
@@ -108,8 +107,8 @@ func (r Repository) AssertMember(hubId primitive.ObjectID, userId primitive.Obje
 func (r *Repository) IsMember(hubId primitive.ObjectID, userId primitive.ObjectID) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
-	projection := options.FindOne().SetProjection(db.M{"_id": 1})
-	err := r.collection.FindOne(ctx, db.M{"_id": hubId, "users": db.M{"$in": []primitive.ObjectID{userId}}}, projection).Err()
+	projection := options.FindOne().SetProjection(bson.M{"_id": 1})
+	err := r.collection.FindOne(ctx, bson.M{"_id": hubId, "users": bson.M{"$in": []primitive.ObjectID{userId}}}, projection).Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
