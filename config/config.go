@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	MongoAddress string `json:"mongoAddress"`
+	MQAddress    string `json:"mqAddress"`
 	ResourceRoot string `json:"resourceRoot"`
 }
 
@@ -40,5 +41,8 @@ func validateConfig(c Config) {
 	}
 	if len(c.ResourceRoot) == 0 {
 		log.Fatal("Resource root directory is empty")
+	}
+	if len(c.MQAddress) == 0 {
+		log.Fatal("Message Queue address is empty")
 	}
 }
