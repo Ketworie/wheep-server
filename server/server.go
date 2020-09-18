@@ -58,6 +58,7 @@ func StartServer() error {
 	jsonServer.HandleFunc("/login", security.HandleLogin).Methods("POST")
 	jsonServer.HandleFunc("/user", user.HandleAdd).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/createIndexes", security.HandleCreateIndexes).Methods("GET")
+	jsonServer.HandleFuncAuthorized("/setup", chat.HandleSetup).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/user", user.HandleGet).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/user/list", user.HandleGetList).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/me", security.HandleMe).Methods("GET")

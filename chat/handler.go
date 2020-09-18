@@ -20,18 +20,24 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	send, err := message.GetRepository().Add(message.Model{
+	model := message.Model{
 		ID:     primitive.ObjectID{},
 		UserId: vm.UserId,
 		HubId:  vm.HubId,
 		Text:   vm.Text,
 		Date:   time.Now(),
 		PrevId: primitive.ObjectID{},
-	})
+	}
+	send, err := message.GetRepository().Add(model)
 	if err != nil {
 		return err
 	}
+	GetService().FanOut(model)
 	return json.NewEncoder(w).Encode(send.View())
+}
+
+func HandleSetup(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
+	return GetService().SetupExchange(userId)
 }
 
 func HandleLast(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {

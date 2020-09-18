@@ -115,3 +115,24 @@ func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
 	}
 	return s.UserId, err
 }
+
+func (g *Gate) GetOffline() ([]primitive.ObjectID, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	find, err := g.sc.Find(ctx, bson.M{"$gt": bson.M{"last": time.Now().Add(-time.Hour * 24 * 30)}})
+	if err != nil {
+		return nil, err
+	}
+	var s []Session
+	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	err = find.All(ctx, &s)
+	if err != nil {
+		return nil, err
+	}
+	var ids []primitive.ObjectID
+	for _, session := range s {
+		ids = append(ids, session.UserId)
+	}
+	return ids, nil
+}

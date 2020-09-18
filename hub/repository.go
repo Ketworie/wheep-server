@@ -43,6 +43,14 @@ func (r *Repository) Get(id primitive.ObjectID) (Model, error) {
 	return m, err
 }
 
+func (r *Repository) GetUserIds(id primitive.ObjectID) ([]primitive.ObjectID, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
+	defer cancel()
+	var m Model
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}, options.FindOne().SetProjection(bson.M{"users": 1})).Decode(&m)
+	return m.Users, err
+}
+
 func (r *Repository) GetList(id []primitive.ObjectID) ([]Model, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
 	defer cancel()
