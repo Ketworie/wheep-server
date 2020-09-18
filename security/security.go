@@ -24,7 +24,7 @@ type Session struct {
 }
 
 type Gate struct {
-	us *user.Service
+	ur *user.Repository
 	sc *mongo.Collection
 }
 
@@ -33,7 +33,7 @@ var once sync.Once
 
 func initGate() {
 	g = &Gate{
-		us: user.GetService(),
+		ur: user.GetRepository(),
 		sc: db.GetDB().Collection("session"),
 	}
 }
@@ -44,7 +44,7 @@ func GetGate() *Gate {
 }
 
 func (g *Gate) Login(login string, password string) (string, error) {
-	u, err := g.us.GetByLogin(login)
+	u, err := g.ur.GetByLogin(login)
 	if err != nil {
 		return "", err
 	}

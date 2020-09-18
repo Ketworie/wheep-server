@@ -14,7 +14,7 @@ func HandleAdd(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	service := GetService()
+	repository := GetRepository()
 	userMap := make(map[primitive.ObjectID]bool)
 	users := []primitive.ObjectID{userId}
 	for _, v := range av.Users {
@@ -23,7 +23,7 @@ func HandleAdd(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 			users = append(users, v)
 		}
 	}
-	add, err := service.Add(Model{
+	add, err := repository.Add(Model{
 		Name:  av.Name,
 		Image: av.Image,
 		Users: users,
@@ -43,7 +43,7 @@ func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	model, err := GetService().Get(id)
+	model, err := GetRepository().Get(id)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func HandleDelete(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return err
 	}
-	return GetService().Delete(id)
+	return GetRepository().Delete(id)
 }
 
 func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -67,7 +67,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	err = GetService().AssertMember(hubId, userId)
+	err = GetRepository().AssertMember(hubId, userId)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	err = GetService().UpdateAvatar(hubId, resourceAddress)
+	err = GetRepository().UpdateAvatar(hubId, resourceAddress)
 	if err != nil {
 		return err
 	}
@@ -89,13 +89,13 @@ func HandleRename(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return err
 	}
-	service := GetService()
-	err = service.AssertMember(hubId, userId)
+	repository := GetRepository()
+	err = repository.AssertMember(hubId, userId)
 	if err != nil {
 		return err
 	}
 	name := r.FormValue("name")
-	err = service.Rename(hubId, name)
+	err = repository.Rename(hubId, name)
 	return err
 }
 
@@ -112,12 +112,12 @@ func HandleAddUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Req
 		}
 		users = append(users, userId)
 	}
-	service := GetService()
-	err = service.AssertMember(id, userId)
+	repository := GetRepository()
+	err = repository.AssertMember(id, userId)
 	if err != nil {
 		return err
 	}
-	err = service.AddUsers(id, users)
+	err = repository.AddUsers(id, users)
 	return err
 }
 
@@ -130,12 +130,12 @@ func HandleRemoveUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
-	service := GetService()
-	err = service.AssertMember(id, userId)
+	repository := GetRepository()
+	err = repository.AssertMember(id, userId)
 	if err != nil {
 		return err
 	}
-	err = service.RemoveUser(id, removed)
+	err = repository.RemoveUser(id, removed)
 	return err
 }
 
@@ -145,8 +145,8 @@ func HandleFindByUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
-	service := GetService()
-	hubs, err := service.FindByUser(userId)
+	repository := GetRepository()
+	hubs, err := repository.FindByUser(userId)
 	if err != nil {
 		return err
 	}
@@ -158,8 +158,8 @@ func HandleFindByUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 }
 
 func HandleFindMyHubs(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	service := GetService()
-	hubs, err := service.FindByUser(userId)
+	repository := GetRepository()
+	hubs, err := repository.FindByUser(userId)
 	if err != nil {
 		return err
 	}

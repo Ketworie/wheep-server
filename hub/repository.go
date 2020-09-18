@@ -7,11 +7,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"sync"
 	"wheep-server/db"
 )
 
 type Repository struct {
 	collection *mongo.Collection
+}
+
+var r *Repository
+var rOnce sync.Once
+
+func GetRepository() *Repository {
+	rOnce.Do(initRepository)
+	return r
+}
+
+func initRepository() {
+	r = &Repository{db.GetDB().Collection("hub")}
 }
 
 func (r *Repository) Add(hub Model) (Model, error) {

@@ -9,7 +9,7 @@ import (
 )
 
 func HandleGetContacts(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	contacts, err := GetService().GetContacts(userId)
+	contacts, err := GetRepository().GetContacts(userId)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return err
 	}
@@ -24,7 +24,7 @@ func HandleAddContact(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 	if userId == contactId {
 		return errors.New("you cannot add yourself to contacts")
 	}
-	return GetService().AddContact(userId, contactId)
+	return GetRepository().AddContact(userId, contactId)
 }
 
 func HandleRemoveContact(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -32,5 +32,5 @@ func HandleRemoveContact(userId primitive.ObjectID, w http.ResponseWriter, r *ht
 	if err != nil {
 		return err
 	}
-	return GetService().AddContact(userId, id)
+	return GetRepository().AddContact(userId, id)
 }

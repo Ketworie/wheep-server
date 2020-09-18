@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
+	"wheep-server/hub"
 	"wheep-server/message"
 )
 
@@ -15,7 +16,18 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 		return err
 	}
 	vm.UserId = userId
-	send, err := Send(vm)
+	err = hub.GetRepository().AssertMember(vm.HubId, vm.UserId)
+	if err != nil {
+		return err
+	}
+	send, err := message.GetRepository().Add(message.Model{
+		ID:     primitive.ObjectID{},
+		UserId: vm.UserId,
+		HubId:  vm.HubId,
+		Text:   vm.Text,
+		Date:   time.Now(),
+		PrevId: primitive.ObjectID{},
+	})
 	if err != nil {
 		return err
 	}
@@ -27,7 +39,7 @@ func HandleLast(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	last, err := message.GetService().Last(hubId)
+	last, err := message.GetRepository().Last(hubId)
 	if err != nil {
 		return err
 	}
@@ -43,7 +55,7 @@ func HandlePrev(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	prev, err := message.GetService().Prev(hubId, date)
+	prev, err := message.GetRepository().Prev(hubId, date)
 	if err != nil {
 		return err
 	}
@@ -59,7 +71,7 @@ func HandleNext(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	last, err := message.GetService().Next(hubId, date)
+	last, err := message.GetRepository().Next(hubId, date)
 	if err != nil {
 		return err
 	}

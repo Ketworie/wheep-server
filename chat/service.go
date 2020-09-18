@@ -1,24 +1,29 @@
 package chat
 
 import (
+	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 	"time"
-	"wheep-server/hub"
-	"wheep-server/message"
 )
 
-func Send(mv message.View) (message.Model, error) {
-	err := hub.GetService().AssertMember(mv.HubId, mv.UserId)
-	if err != nil {
-		return message.Model{}, err
-	}
-	model, err := message.GetService().Add(message.Model{
-		ID:     primitive.ObjectID{},
-		UserId: mv.UserId,
-		HubId:  mv.HubId,
-		Text:   mv.Text,
-		Date:   time.Now(),
-		PrevId: primitive.ObjectID{},
-	})
-	return model, err
+type Service struct {
+	mqChan       *amqp.Channel
+	hubs         *hubSync
+	userActivity map[string]*timeSync
+}
+
+type timeSync struct {
+	sync.RWMutex
+	time time.Time
+}
+
+type idSync struct {
+	sync.RWMutex
+	ids []string
+}
+
+type hubSync struct {
+	sync.RWMutex
+	hubs map[primitive.ObjectID]idSync
 }

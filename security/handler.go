@@ -22,11 +22,11 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 }
 
 func HandleCreateIndexes(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	return user.GetService().CreateIndexes()
+	return user.GetRepository().CreateIndexes()
 }
 
 func HandleMe(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	model, err := user.GetService().Get(userId)
+	model, err := user.GetRepository().Get(userId)
 	if err != nil {
 		return err
 	}
