@@ -13,7 +13,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 	gate := GetGate()
 	login := r.PostFormValue("login")
 	password := r.PostFormValue("password")
-	token, err := gate.Login(login, password)
+	token, err := gate.Login(r.Context(), login, password)
 	if err != nil {
 		return err
 	}
@@ -22,11 +22,11 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) error {
 }
 
 func HandleCreateIndexes(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	return user.GetRepository().CreateIndexes()
+	return user.GetRepository().CreateIndexes(r.Context())
 }
 
 func HandleMe(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	model, err := user.GetRepository().Get(userId)
+	model, err := user.GetRepository().Get(r.Context(), userId)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func HandleAuthorize(w http.ResponseWriter, r *http.Request) (primitive.ObjectID
 		return primitive.NilObjectID, err
 	}
 	gate := GetGate()
-	uid, err := gate.Authorize(sid)
+	uid, err := gate.Authorize(r.Context(), sid)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}

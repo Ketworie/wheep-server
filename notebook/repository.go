@@ -26,25 +26,19 @@ func initRepository() {
 	r = &Repository{db.GetDB().Collection("notebook")}
 }
 
-func (r *Repository) GetContacts(userId primitive.ObjectID) ([]primitive.ObjectID, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
+func (r *Repository) GetContacts(ctx context.Context, userId primitive.ObjectID) ([]primitive.ObjectID, error) {
 	var n Model
 	cs := []primitive.ObjectID{}
 	err := r.collection.FindOne(ctx, bson.M{"_id": userId}, options.FindOne().SetProjection(bson.M{"contacts": 1})).Decode(&n)
 	return append(cs, n.Contacts...), err
 }
 
-func (r *Repository) AddContact(userId primitive.ObjectID, contact primitive.ObjectID) error {
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
+func (r *Repository) AddContact(ctx context.Context, userId primitive.ObjectID, contact primitive.ObjectID) error {
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": userId}, bson.M{"$addToSet": bson.M{"contacts": contact}}, options.Update().SetUpsert(true))
 	return err
 }
 
-func (r *Repository) RemoveContact(userId primitive.ObjectID, contact primitive.ObjectID) error {
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
+func (r *Repository) RemoveContact(ctx context.Context, userId primitive.ObjectID, contact primitive.ObjectID) error {
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": userId}, bson.M{"$pullAll": bson.M{"contacts": contact}})
 	return err
 }

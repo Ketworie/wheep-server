@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -53,8 +54,8 @@ type Service struct {
 }
 
 type userRepository interface {
-	GetUserIds(hubId primitive.ObjectID) ([]primitive.ObjectID, error)
-	GetOffline() ([]primitive.ObjectID, error)
+	GetUserIds(ctx context.Context, hubId primitive.ObjectID) ([]primitive.ObjectID, error)
+	GetOffline(ctx context.Context) ([]primitive.ObjectID, error)
 }
 
 type exchangeSync struct {
@@ -72,14 +73,14 @@ type hubSync struct {
 	hubUsers map[primitive.ObjectID]*idSync
 }
 
-func (s *Service) FanOut(m message.Model) {
+func (s *Service) FanOut(ctx context.Context, m message.Model) {
 	hs := s.hubSync
 	hubId := m.HubId
 	hs.RLock()
 	uSync, ok := hs.hubUsers[hubId]
 	hs.RUnlock()
 	if !ok {
-		userIds, err := s.repo.GetUserIds(hubId)
+		userIds, err := s.repo.GetUserIds(ctx, hubId)
 		if err != nil {
 			log.Printf("Error during message fanout. Can't get hub's users': %v", err)
 			return

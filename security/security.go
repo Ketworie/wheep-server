@@ -43,8 +43,8 @@ func GetGate() *Gate {
 	return g
 }
 
-func (g *Gate) Login(login string, password string) (string, error) {
-	u, err := g.ur.GetByLogin(login)
+func (g *Gate) Login(ctx context.Context, login string, password string) (string, error) {
+	u, err := g.ur.GetByLogin(ctx, login)
 	if err != nil {
 		return "", err
 	}
@@ -56,11 +56,11 @@ func (g *Gate) Login(login string, password string) (string, error) {
 		UserId: u.ID,
 		Last:   time.Now(),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
 	_, err = g.sc.InsertOne(ctx, session)
 	go func() {
-		e := g.checkSessionLimit(u.ID)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+		defer cancel()
+		e := g.checkSessionLimit(ctx, u.ID)
 		if e != nil {
 			log.Fatalf("Cannot check session limit. %v", e)
 		}
@@ -68,15 +68,11 @@ func (g *Gate) Login(login string, password string) (string, error) {
 	return session.ID.String(), err
 }
 
-func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
+func (g *Gate) checkSessionLimit(ctx context.Context, userId primitive.ObjectID) error {
 	find, _ := g.sc.Find(ctx, bson.M{"userId": userId}, options.Find().SetProjection(bson.M{"_id": 1}), options.Find().SetSort(bson.M{"last": -1}), options.Find().SetSkip(int64(sessionLimit)))
 	var res []struct {
 		ID uuid.UUID `bson:"_id"`
 	}
-	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
 	err := find.All(ctx, &res)
 	if err != nil {
 		return err
@@ -86,8 +82,6 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 		for i, re := range res {
 			ids[i] = re.ID
 		}
-		ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
-		defer cancel()
 		_, err = g.sc.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
 		if err != nil {
 			return err
@@ -96,9 +90,7 @@ func (g *Gate) checkSessionLimit(userId primitive.ObjectID) error {
 	return nil
 }
 
-func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
+func (g *Gate) Authorize(ctx context.Context, sid uuid.UUID) (primitive.ObjectID, error) {
 	one := g.sc.FindOne(ctx, bson.M{"_id": sid})
 	var s Session
 	if one.Err() != nil {
@@ -106,8 +98,6 @@ func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
 	}
 	err := one.Decode(&s)
 	if err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-		defer cancel()
 		_, err := g.sc.UpdateOne(ctx, bson.M{"_id": s.ID}, bson.M{"$set": bson.M{"last": time.Now()}})
 		if err != nil {
 			return primitive.NilObjectID, err
@@ -116,16 +106,12 @@ func (g *Gate) Authorize(sid uuid.UUID) (primitive.ObjectID, error) {
 	return s.UserId, err
 }
 
-func (g *Gate) GetOffline() ([]primitive.ObjectID, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
-	find, err := g.sc.Find(ctx, bson.M{"$gt": bson.M{"last": time.Now().Add(-time.Hour * 24 * 30)}})
+func (g *Gate) GetOffline(ctx context.Context) ([]primitive.ObjectID, error) {
+	find, err := g.sc.Find(ctx, bson.M{"$lt": bson.M{"last": time.Now().Add(-time.Hour * 24 * 30)}})
 	if err != nil {
 		return nil, err
 	}
 	var s []Session
-	ctx, cancel = context.WithTimeout(context.Background(), db.DBTimeout)
-	defer cancel()
 	err = find.All(ctx, &s)
 	if err != nil {
 		return nil, err

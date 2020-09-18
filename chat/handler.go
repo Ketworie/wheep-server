@@ -16,7 +16,7 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 		return err
 	}
 	vm.UserId = userId
-	err = hub.GetRepository().AssertMember(vm.HubId, vm.UserId)
+	err = hub.GetRepository().AssertMember(r.Context(), vm.HubId, vm.UserId)
 	if err != nil {
 		return err
 	}
@@ -28,11 +28,11 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 		Date:   time.Now(),
 		PrevId: primitive.ObjectID{},
 	}
-	send, err := message.GetRepository().Add(model)
+	send, err := message.GetRepository().Add(r.Context(), model)
 	if err != nil {
 		return err
 	}
-	GetService().FanOut(model)
+	GetService().FanOut(r.Context(), model)
 	return json.NewEncoder(w).Encode(send.View())
 }
 
@@ -45,7 +45,7 @@ func HandleLast(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	last, err := message.GetRepository().Last(hubId)
+	last, err := message.GetRepository().Last(r.Context(), hubId)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func HandlePrev(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	prev, err := message.GetRepository().Prev(hubId, date)
+	prev, err := message.GetRepository().Prev(r.Context(), hubId, date)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func HandleNext(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	last, err := message.GetRepository().Next(hubId, date)
+	last, err := message.GetRepository().Next(r.Context(), hubId, date)
 	if err != nil {
 		return err
 	}

@@ -23,7 +23,7 @@ func HandleAdd(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 			users = append(users, v)
 		}
 	}
-	add, err := repository.Add(Model{
+	add, err := repository.Add(r.Context(), Model{
 		Name:  av.Name,
 		Image: av.Image,
 		Users: users,
@@ -43,7 +43,7 @@ func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	model, err := GetRepository().Get(id)
+	model, err := GetRepository().Get(r.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func HandleDelete(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return err
 	}
-	return GetRepository().Delete(id)
+	return GetRepository().Delete(r.Context(), id)
 }
 
 func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -67,7 +67,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	err = GetRepository().AssertMember(hubId, userId)
+	err = GetRepository().AssertMember(r.Context(), hubId, userId)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	err = GetRepository().UpdateAvatar(hubId, resourceAddress)
+	err = GetRepository().UpdateAvatar(r.Context(), hubId, resourceAddress)
 	if err != nil {
 		return err
 	}
@@ -90,12 +90,12 @@ func HandleRename(userId primitive.ObjectID, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 	repository := GetRepository()
-	err = repository.AssertMember(hubId, userId)
+	err = repository.AssertMember(r.Context(), hubId, userId)
 	if err != nil {
 		return err
 	}
 	name := r.FormValue("name")
-	err = repository.Rename(hubId, name)
+	err = repository.Rename(r.Context(), hubId, name)
 	return err
 }
 
@@ -113,11 +113,11 @@ func HandleAddUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.Req
 		users = append(users, userId)
 	}
 	repository := GetRepository()
-	err = repository.AssertMember(id, userId)
+	err = repository.AssertMember(r.Context(), id, userId)
 	if err != nil {
 		return err
 	}
-	err = repository.AddUsers(id, users)
+	err = repository.AddUsers(r.Context(), id, users)
 	return err
 }
 
@@ -131,11 +131,11 @@ func HandleRemoveUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 		return err
 	}
 	repository := GetRepository()
-	err = repository.AssertMember(id, userId)
+	err = repository.AssertMember(r.Context(), id, userId)
 	if err != nil {
 		return err
 	}
-	err = repository.RemoveUser(id, removed)
+	err = repository.RemoveUser(r.Context(), id, removed)
 	return err
 }
 
@@ -146,7 +146,7 @@ func HandleFindByUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 		return err
 	}
 	repository := GetRepository()
-	hubs, err := repository.FindByUser(userId)
+	hubs, err := repository.FindByUser(r.Context(), userId)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func HandleFindByUser(userId primitive.ObjectID, w http.ResponseWriter, r *http.
 
 func HandleFindMyHubs(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
 	repository := GetRepository()
-	hubs, err := repository.FindByUser(userId)
+	hubs, err := repository.FindByUser(r.Context(), userId)
 	if err != nil {
 		return err
 	}

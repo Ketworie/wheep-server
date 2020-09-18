@@ -14,14 +14,14 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	repository := GetRepository()
-	_, err = repository.Add(u)
+	_, err = repository.Add(r.Context(), u)
 	return err
 }
 
 func HandleGetByAlias(w http.ResponseWriter, r *http.Request) error {
 	alias := r.FormValue("alias")
 	repository := GetRepository()
-	u, err := repository.GetByAlias(alias)
+	u, err := repository.GetByAlias(r.Context(), alias)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func HandleUpdateAvatar(userId primitive.ObjectID, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-	err = GetRepository().UpdateAvatar(userId, resourceAddress)
+	err = GetRepository().UpdateAvatar(r.Context(), userId, resourceAddress)
 	if err != nil {
 		return err
 	}
@@ -52,9 +52,9 @@ func HandleGet(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request
 	repository := GetRepository()
 	var u Model
 	if len(alias) == 0 {
-		u, err = repository.Get(id)
+		u, err = repository.Get(r.Context(), id)
 	} else {
-		u, err = repository.GetByAlias(alias)
+		u, err = repository.GetByAlias(r.Context(), alias)
 	}
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func HandleGetList(userId primitive.ObjectID, w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return err
 	}
-	us, err := GetRepository().GetList(is)
+	us, err := GetRepository().GetList(r.Context(), is)
 	if err != nil {
 		return err
 	}

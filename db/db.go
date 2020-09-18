@@ -14,9 +14,6 @@ var db *mongo.Database
 var cOnce sync.Once
 var dbOnce sync.Once
 
-// TODO: SWITCH TO REQUEST CONTEXT
-var DBTimeout = time.Minute
-
 func GetClient() *mongo.Client {
 	cOnce.Do(initClient)
 	return client
