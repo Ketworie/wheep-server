@@ -51,15 +51,6 @@ func (r *Repository) Add(ctx context.Context, m Model) (Model, error) {
 	return m, err
 }
 
-func (r *Repository) Last(ctx context.Context, hubId primitive.ObjectID) (Model, error) {
-	var m Model
-	err := r.collection.FindOne(ctx, bson.M{"hubId": hubId}, options.FindOne().SetSort(bson.M{"date": -1})).Decode(&m)
-	if err != nil {
-		return Model{}, err
-	}
-	return m, nil
-}
-
 func (r *Repository) Prev(ctx context.Context, hubId primitive.ObjectID, time time.Time) (ModelList, error) {
 	ms := []Model{}
 	find, err := r.collection.Find(ctx, bson.M{"date": bson.M{"$lt": time}, "hubId": bson.M{"$eq": hubId}}, options.Find().SetLimit(30).SetSort(bson.M{"date": -1}))

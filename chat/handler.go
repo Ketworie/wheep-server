@@ -32,24 +32,14 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	GetService().FanOut(r.Context(), model)
-	return json.NewEncoder(w).Encode(send.View())
+	view := send.View()
+	GetService().Fanout(r.Context(), view)
+	return json.NewEncoder(w).Encode(view)
 }
 
 func HandleSetup(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	return GetService().SetupExchange(userId)
-}
-
-func HandleLast(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	hubId, err := primitive.ObjectIDFromHex(r.FormValue("hub"))
-	if err != nil {
-		return err
-	}
-	last, err := message.GetRepository().Last(r.Context(), hubId)
-	if err != nil {
-		return err
-	}
-	return json.NewEncoder(w).Encode(last.View())
+	token := r.Header.Get("X-Auth-Token")
+	return GetService().SetupExchange(userId, token)
 }
 
 func HandlePrev(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {

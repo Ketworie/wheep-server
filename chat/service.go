@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -73,7 +74,7 @@ type hubSync struct {
 	hubUsers map[primitive.ObjectID]*idSync
 }
 
-func (s *Service) FanOut(ctx context.Context, m message.Model) {
+func (s *Service) Fanout(ctx context.Context, m message.View) {
 	hs := s.hubSync
 	hubId := m.HubId
 	hs.RLock()
@@ -122,10 +123,11 @@ func (s *Service) publishJSON(exchange string, body []byte) {
 	}
 }
 
-func (s *Service) SetupExchange(userId primitive.ObjectID) error {
+func (s *Service) SetupExchange(userId primitive.ObjectID, token string) error {
 	e := s.exchangeSync
+	exchangeName := userId.Hex()
 	err := s.mqChan.ExchangeDeclare(
-		userId.Hex(),
+		exchangeName,
 		"fanout",
 		false,
 		false,
@@ -137,7 +139,26 @@ func (s *Service) SetupExchange(userId primitive.ObjectID) error {
 		return err
 	}
 	e.Lock()
-	defer e.Unlock()
-	e.channels[userId.Hex()] = true
-	return nil
+	e.channels[exchangeName] = true
+	e.Unlock()
+	qName := fmt.Sprintf("q-%v", token)
+	queue, err := s.mqChan.QueueDeclare(
+		qName,
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+	err = s.mqChan.QueueBind(
+		queue.Name,
+		"",
+		exchangeName,
+		false,
+		nil,
+	)
+	return err
 }

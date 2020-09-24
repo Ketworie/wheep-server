@@ -71,7 +71,6 @@ func StartServer() error {
 	jsonServer.HandleFuncAuthorized("/hub", hub.HandleGet).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/hub", hub.HandleDelete).Methods("DELETE")
 	jsonServer.HandleFuncAuthorized("/hub/send", chat.HandleSend).Methods("POST")
-	jsonServer.HandleFuncAuthorized("/hub/last", chat.HandleLast).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/hub/prev", chat.HandlePrev).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/hub/next", chat.HandleNext).Methods("GET")
 	jsonServer.HandleFuncAuthorized("/hub/rename", hub.HandleRename).Methods("POST")
