@@ -23,12 +23,9 @@ func GetService() *Service {
 }
 
 func initService() {
-	channel, err := mq.GetConnection().Channel()
-	if err != nil {
-		log.Fatal(err)
-	}
+	supplier := mq.ChannelSupplier()
 	s = &Service{
-		mqChan: channel,
+		chanSupplier: supplier,
 		hubSync: &hubSync{
 			RWMutex:  sync.RWMutex{},
 			hubUsers: make(map[primitive.ObjectID]*idSync),
@@ -48,7 +45,7 @@ func initService() {
 }
 
 type Service struct {
-	mqChan       *amqp.Channel
+	chanSupplier func() *amqp.Channel
 	hubSync      *hubSync
 	exchangeSync *exchangeSync
 	repo         userRepository
@@ -108,7 +105,7 @@ func (s *Service) publishJSON(exchange string, body []byte) {
 	if _, ok := e.channels[exchange]; !ok {
 		return
 	}
-	err := s.mqChan.Publish(
+	err := s.chanSupplier().Publish(
 		exchange,
 		"",
 		false,
@@ -126,7 +123,7 @@ func (s *Service) publishJSON(exchange string, body []byte) {
 func (s *Service) SetupExchange(userId primitive.ObjectID, token string) error {
 	e := s.exchangeSync
 	exchangeName := userId.Hex()
-	err := s.mqChan.ExchangeDeclare(
+	err := s.chanSupplier().ExchangeDeclare(
 		exchangeName,
 		"fanout",
 		false,
@@ -142,7 +139,7 @@ func (s *Service) SetupExchange(userId primitive.ObjectID, token string) error {
 	e.channels[exchangeName] = true
 	e.Unlock()
 	qName := fmt.Sprintf("q-%v", token)
-	queue, err := s.mqChan.QueueDeclare(
+	queue, err := s.chanSupplier().QueueDeclare(
 		qName,
 		false,
 		false,
@@ -153,7 +150,7 @@ func (s *Service) SetupExchange(userId primitive.ObjectID, token string) error {
 	if err != nil {
 		return err
 	}
-	err = s.mqChan.QueueBind(
+	err = s.chanSupplier().QueueBind(
 		queue.Name,
 		"",
 		exchangeName,
