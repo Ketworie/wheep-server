@@ -5,8 +5,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
+	"wheep-server/event"
 	"wheep-server/hub"
 	"wheep-server/message"
+	wheepTime "wheep-server/time"
 )
 
 func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
@@ -33,7 +35,11 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 		return err
 	}
 	view := send.View()
-	GetService().Fanout(r.Context(), view)
+	eventModel, err := event.NewEventModel(view, view.UserId)
+	if err != nil {
+		return err
+	}
+	GetService().Fanout(r.Context(), view.HubId, eventModel.View())
 	return json.NewEncoder(w).Encode(view)
 }
 
@@ -47,7 +53,7 @@ func HandlePrev(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	date, err := time.Parse("2006-01-02T15:04:05.999Z[MST]", r.FormValue("date"))
+	date, err := time.Parse(wheepTime.Zoned, r.FormValue("date"))
 	if err != nil {
 		return err
 	}
@@ -63,7 +69,7 @@ func HandleNext(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
-	date, err := time.Parse("2006-01-02T15:04:05.999Z[MST]", r.FormValue("date"))
+	date, err := time.Parse(wheepTime.Zoned, r.FormValue("date"))
 	if err != nil {
 		return err
 	}

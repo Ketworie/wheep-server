@@ -9,6 +9,7 @@ import (
 	"time"
 	"wheep-server/chat"
 	"wheep-server/config"
+	"wheep-server/event"
 	"wheep-server/hub"
 	"wheep-server/notebook"
 	"wheep-server/security"
@@ -78,6 +79,7 @@ func StartServer() error {
 	jsonServer.HandleFuncAuthorized("/hub/user/add", hub.HandleAddUser).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/hub/user/remove", hub.HandleRemoveUser).Methods("POST")
 	jsonServer.HandleFuncAuthorized("/upload/image", storage.HandleUploadImage).Methods("POST")
+	jsonServer.HandleFuncAuthorized("/event/last", event.HandleLast).Methods("GET")
 	server.PathPrefix("/wayne/{?:\\w{24}}/{?:[\\w\\.]+}").Handler(http.StripPrefix("/wayne/", http.FileServer(http.Dir(config.Get().ResourceRoot))))
 	return http.ListenAndServe(":8080", server)
 }

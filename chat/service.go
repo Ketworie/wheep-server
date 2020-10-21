@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"sync"
+	"wheep-server/event"
 	"wheep-server/hub"
-	"wheep-server/message"
 	"wheep-server/mq"
 	"wheep-server/security"
 )
@@ -32,7 +32,7 @@ func initService() {
 		},
 		exchangeSync: &exchangeSync{
 			RWMutex:  sync.RWMutex{},
-			channels: make(map[string]bool),
+			channels: make(map[primitive.ObjectID]bool),
 		},
 		repo: struct {
 			*hub.Repository
@@ -58,7 +58,7 @@ type userRepository interface {
 
 type exchangeSync struct {
 	sync.RWMutex
-	channels map[string]bool
+	channels map[primitive.ObjectID]bool
 }
 
 type idSync struct {
@@ -71,9 +71,13 @@ type hubSync struct {
 	hubUsers map[primitive.ObjectID]*idSync
 }
 
-func (s *Service) Fanout(ctx context.Context, m message.View) {
+func (s *Service) Fanout(ctx context.Context, hubId primitive.ObjectID, event event.View) {
+	body, err := json.Marshal(event)
+	if err != nil {
+		log.Printf("Cannot marshall event. Error: %s", err)
+		return
+	}
 	hs := s.hubSync
-	hubId := m.HubId
 	hs.RLock()
 	uSync, ok := hs.hubUsers[hubId]
 	hs.RUnlock()
@@ -88,25 +92,22 @@ func (s *Service) Fanout(ctx context.Context, m message.View) {
 		hs.hubUsers[hubId] = uSync
 		hs.Unlock()
 	}
-	body, err := json.Marshal(m)
-	if err != nil {
-		log.Printf("Error during message fanout. Can't marshall message': %v", err)
-		return
-	}
+	uSync.RLock()
+	defer uSync.RUnlock()
 	for _, userId := range uSync.ids {
-		s.publishJSON(userId.Hex(), body)
+		s.PublishJSON(userId, body)
 	}
 }
 
-func (s *Service) publishJSON(exchange string, body []byte) {
+func (s *Service) PublishJSON(userId primitive.ObjectID, body []byte) {
 	e := s.exchangeSync
 	e.RLock()
 	defer e.RUnlock()
-	if _, ok := e.channels[exchange]; !ok {
+	if _, ok := e.channels[userId]; !ok {
 		return
 	}
 	err := s.chanSupplier().Publish(
-		exchange,
+		userId.Hex(),
 		"",
 		false,
 		false,
@@ -136,7 +137,7 @@ func (s *Service) SetupExchange(userId primitive.ObjectID, token string) error {
 		return err
 	}
 	e.Lock()
-	e.channels[exchangeName] = true
+	e.channels[userId] = true
 	e.Unlock()
 	qName := fmt.Sprintf("q-%v", token)
 	queue, err := s.chanSupplier().QueueDeclare(

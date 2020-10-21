@@ -6,21 +6,23 @@ import (
 )
 
 type Model struct {
-	ID     primitive.ObjectID `bson:"_id"`
-	UserId primitive.ObjectID `bson:"userId"`
-	HubId  primitive.ObjectID `bson:"hubId"`
-	Text   string             `bson:"text"`
-	Date   time.Time          `bson:"date"`
-	PrevId primitive.ObjectID `bson:"prevId"`
+	ID     primitive.ObjectID   `bson:"_id"`
+	UserId primitive.ObjectID   `bson:"userId"`
+	HubId  primitive.ObjectID   `bson:"hubId"`
+	Text   string               `bson:"text"`
+	Date   time.Time            `bson:"date"`
+	PrevId primitive.ObjectID   `bson:"prevId"`
+	ReadBy []primitive.ObjectID `bson:"readBy"`
 }
 
 type View struct {
-	ID     primitive.ObjectID `json:"id"`
-	UserId primitive.ObjectID `json:"userId"`
-	HubId  primitive.ObjectID `json:"hubId"`
-	Text   string             `json:"text"`
-	Date   time.Time          `json:"date"`
-	PrevId primitive.ObjectID `json:"prevId"`
+	ID     primitive.ObjectID   `json:"id"`
+	UserId primitive.ObjectID   `json:"userId"`
+	HubId  primitive.ObjectID   `json:"hubId"`
+	Text   string               `json:"text"`
+	Date   time.Time            `json:"date"`
+	PrevId primitive.ObjectID   `json:"prevId"`
+	ReadBy []primitive.ObjectID `json:"readBy"`
 }
 
 func (m Model) View() View {
@@ -31,7 +33,12 @@ func (m Model) View() View {
 		Text:   m.Text,
 		Date:   m.Date,
 		PrevId: m.PrevId,
+		ReadBy: m.ReadBy,
 	}
+}
+
+func (v View) Type() string {
+	return "message"
 }
 
 type ModelList []Model
