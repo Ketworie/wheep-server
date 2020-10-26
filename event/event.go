@@ -2,8 +2,10 @@ package event
 
 import (
 	"encoding/json"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+	wheepTime "wheep-server/time"
 )
 
 type Typer interface {
@@ -11,9 +13,14 @@ type Typer interface {
 }
 
 type View struct {
-	Date time.Time `json:"date"`
-	Type string    `json:"type"`
-	Body string    `json:"body"`
+	Date wheepTime.JSONTime `json:"date"`
+	Type string             `json:"type"`
+	Body string             `json:"body"`
+}
+
+func (v View) MarshalJSON() ([]byte, error) {
+	s := fmt.Sprintf("{\"date\": \"%v\", \"type\": \"%v\", \"body\": %v}", v.Date.UTC().Format(wheepTime.Zoned), v.Type, v.Body)
+	return []byte(s), nil
 }
 
 type Model struct {
@@ -23,11 +30,11 @@ type Model struct {
 	UserId primitive.ObjectID `bson:"userId"`
 }
 
-func (e Model) View() View {
+func (m Model) View() View {
 	return View{
-		Date: e.Date,
-		Type: e.Type,
-		Body: e.Body,
+		Date: wheepTime.JSONTime{m.Date},
+		Type: m.Type,
+		Body: m.Body,
 	}
 }
 

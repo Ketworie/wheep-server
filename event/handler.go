@@ -9,10 +9,13 @@ import (
 )
 
 func HandleLast(userId primitive.ObjectID, w http.ResponseWriter, r *http.Request) error {
-	date, err := time.Parse(wheepTime.Zoned, r.FormValue("date"))
+	date, err := time.Parse(wheepTime.Zoned, r.FormValue("from"))
 	if err != nil {
 		return err
 	}
 	last, err := GetRepository().Last(r.Context(), userId, date)
-	return json.NewEncoder(w).Encode(last)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(w).Encode(last.View())
 }

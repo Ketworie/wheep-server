@@ -39,6 +39,10 @@ func HandleSend(userId primitive.ObjectID, w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return err
 	}
+	_, err = event.GetRepository().Add(r.Context(), eventModel)
+	if err != nil {
+		return err
+	}
 	GetService().Fanout(r.Context(), view.HubId, eventModel.View())
 	return json.NewEncoder(w).Encode(view)
 }

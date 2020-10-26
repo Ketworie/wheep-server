@@ -34,6 +34,6 @@ func (r *Repository) Add(ctx context.Context, m Model) (Model, error) {
 
 func (r *Repository) Last(ctx context.Context, userId primitive.ObjectID, date time.Time) (Model, error) {
 	var m Model
-	err := r.collection.FindOne(ctx, bson.M{"userId": userId, "$gt": bson.M{"date": date}}, options.FindOne().SetSort(bson.M{"date": -1})).Decode(&m)
+	err := r.collection.FindOne(ctx, bson.M{"userId": userId, "date": bson.M{"$gt": date}}, options.FindOne().SetSort(bson.M{"date": -1})).Decode(&m)
 	return m, err
 }

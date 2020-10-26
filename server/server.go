@@ -14,6 +14,7 @@ import (
 	"wheep-server/notebook"
 	"wheep-server/security"
 	"wheep-server/storage"
+	wheepTime "wheep-server/time"
 	"wheep-server/user"
 )
 
@@ -27,12 +28,12 @@ func (s *Server) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 		if err != nil {
 			writer.WriteHeader(http.StatusBadRequest)
 			jsonErr := json.NewEncoder(writer).Encode(struct {
-				Message string    `json:"message"`
-				Date    time.Time `json:"date"`
-				Path    string    `json:"path"`
+				Message string             `json:"message"`
+				Date    wheepTime.JSONTime `json:"date"`
+				Path    string             `json:"path"`
 			}{
 				Message: err.Error(),
-				Date:    time.Now(),
+				Date:    wheepTime.JSONTime{time.Now()},
 				Path:    path,
 			})
 			if jsonErr != nil {

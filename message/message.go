@@ -3,6 +3,7 @@ package message
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+	wheepTime "wheep-server/time"
 )
 
 type Model struct {
@@ -16,13 +17,13 @@ type Model struct {
 }
 
 type View struct {
-	ID     primitive.ObjectID   `json:"id"`
-	UserId primitive.ObjectID   `json:"userId"`
-	HubId  primitive.ObjectID   `json:"hubId"`
-	Text   string               `json:"text"`
-	Date   time.Time            `json:"date"`
-	PrevId primitive.ObjectID   `json:"prevId"`
-	ReadBy []primitive.ObjectID `json:"readBy"`
+	ID     primitive.ObjectID `json:"id"`
+	UserId primitive.ObjectID `json:"userId"`
+	HubId  primitive.ObjectID `json:"hubId"`
+	Text   string             `json:"text"`
+	Date   wheepTime.JSONTime `json:"date"`
+	PrevId primitive.ObjectID `json:"prevId"`
+	//ReadBy []primitive.ObjectID `json:"readBy"`
 }
 
 func (m Model) View() View {
@@ -31,9 +32,9 @@ func (m Model) View() View {
 		UserId: m.UserId,
 		HubId:  m.HubId,
 		Text:   m.Text,
-		Date:   m.Date,
+		Date:   wheepTime.JSONTime{m.Date},
 		PrevId: m.PrevId,
-		ReadBy: m.ReadBy,
+		//ReadBy: m.ReadBy,
 	}
 }
 
